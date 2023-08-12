@@ -1,4 +1,4 @@
-package com.mdc.mspring.anno;
+package com.mdc.mspring.anno.ioc;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
