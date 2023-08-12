@@ -23,7 +23,7 @@ public class BeanDefinition {
     private Object instance;
     private Constructor<?> constructor;
     // for instanting an object
-    // under @COnfiguration
+    // under @Configuration
     private Method factoryMethod;
     private String factoryName;
 

@@ -2,6 +2,7 @@ package com.mdc.mspring.app.config;
 
 import com.mdc.mspring.anno.ioc.*;
 import com.mdc.mspring.app.bean.TestBean;
+import com.mdc.mspring.app.service.TestService;
 
 /**
  * @Author: ShuangShu
@@ -15,7 +16,7 @@ public class TestConfig {
     @Order(10)
     @Primary(value = true)
     @Bean(value = "testBeanName", initMethod = "testBeanInit", destroyMethod = "testBeanDestroy")
-    public TestBean factory() {
+    public TestBean factory(@Autowired TestService testService) {
         return new TestBean();
     }
 }

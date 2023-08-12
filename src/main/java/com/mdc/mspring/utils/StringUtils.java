@@ -12,7 +12,7 @@ public class StringUtils {
         return setHeadLower(index == -1 ? name : name.substring(index + 1));
     }
 
-    public static boolean isEmptyString(String str) {
+    public static boolean isEmpty(String str) {
         return str == null || str.isEmpty();
     }
 

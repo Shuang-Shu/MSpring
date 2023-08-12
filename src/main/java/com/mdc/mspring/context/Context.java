@@ -11,6 +11,8 @@ import com.mdc.mspring.entity.ioc.BeanDefinition;
 public interface Context {
     public void register(BeanDefinition definition);
 
+    public Object getBean(String beanName);
+
     public <T> T getBean(String beanName, Class<T> clazz);
 
     public <T> T getBean(Class<T> clazz);

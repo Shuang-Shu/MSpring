@@ -69,6 +69,31 @@ public class ClassUtils {
         return cons[0];
     }
 
+    public static Annotation[] getTargetAnnotaionOnConstructorArgs(Constructor<?> constructor, Class<? extends Annotation> annotationClass) {
+        var annotations = constructor.getParameterAnnotations();
+        Annotation[] result = new Annotation[annotations.length];
+        getTargetAnnotation(annotations, result, annotationClass);
+        return result;
+    }
+
+    public static Annotation[] getTargetAnnotaionOnMethodArgs(Method method, Class<? extends Annotation> annotationClass) {
+        var annotations = method.getParameterAnnotations();
+        Annotation[] result = new Annotation[annotations.length];
+        getTargetAnnotation(annotations, result, annotationClass);
+        return result;
+    }
+
+    private static void getTargetAnnotation(Annotation[][] annotations, Annotation[] target, Class<? extends Annotation> annotationClass) {
+        for (int i = 0; i < annotations.length; i++) {
+            for (Annotation annotation : annotations[i]) {
+                if (annotation.annotationType() == annotationClass) {
+                    target[i] = annotation;
+                    break;
+                }
+            }
+        }
+    }
+
     public static int getOrder(Class<?> clazz) {
         Order order = (Order) clazz.getAnnotation(Order.class);
         return order != null ? order.value() : 0;
