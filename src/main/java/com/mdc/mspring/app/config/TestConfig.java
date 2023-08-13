@@ -1,8 +1,8 @@
 package com.mdc.mspring.app.config;
 
-import com.mdc.mspring.anno.ioc.*;
 import com.mdc.mspring.app.bean.TestBean;
 import com.mdc.mspring.app.service.TestService;
+import com.mdc.mspring.context.anno.*;
 
 /**
  * @Author: ShuangShu
@@ -11,7 +11,7 @@ import com.mdc.mspring.app.service.TestService;
  * @Description:
  */
 @Configuration
-@ComponentScan("com.mdc.mspring.app")
+@ComponentScan("com.mdc")
 public class TestConfig {
     @Order(10)
     @Primary(value = true)

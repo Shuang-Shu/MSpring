@@ -1,9 +1,7 @@
 package com.mdc.mspring.app.controller;
 
-import com.mdc.mspring.anno.ioc.*;
-import com.mdc.mspring.app.config.TestConfig;
-import com.mdc.mspring.app.dao.TestDao;
 import com.mdc.mspring.app.service.TestService;
+import com.mdc.mspring.context.anno.*;
 
 /**
  * @Author: ShuangShu
@@ -15,21 +13,16 @@ import com.mdc.mspring.app.service.TestService;
 @Order(10)
 @Controller
 public class TestController {
-    public TestController(@Autowired TestDao testDao) {
+    public TestController(@Autowired TestService testService) {
 //        System.out.println(testDao);
-        this.testDao = testDao;
+        this.testService = testService;
     }
 
-    @Autowired
-    public void setTestDao(@Autowired TestService service) {
-        this.testService = service;
-    }
-
-    private TestDao testDao;
     private TestService testService;
 
-    @Autowired
-    private TestConfig testConfig;
+    public void test() {
+        testService.service();
+    }
 
     @PostConstruct
     public void testInit() {

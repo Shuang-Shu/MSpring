@@ -6,17 +6,17 @@ import com.mdc.mspring.context.anno.Value;
 /**
  * @Author: ShuangShu
  * @Email: 1103725164@qq.com
- * @Date: 2023/08/12/18:14
+ * @Date: 2023/08/13/20:06
  * @Description:
  */
 @Component
-public class TestDao {
+public class TestDao2 {
     @Value("username")
     public String username;
     @Value("password")
     public String passwd;
 
     public void test() {
-        System.out.println("dao 2");
+        System.out.println("dao");
     }
 }

@@ -1,9 +1,8 @@
 package com.mdc.mspring.utils;
 
-import com.mdc.mspring.anno.ioc.Order;
-import com.mdc.mspring.anno.ioc.PostConstruct;
-import com.mdc.mspring.anno.ioc.Primary;
-import com.mdc.mspring.exception.BeanDefinitionException;
+import com.mdc.mspring.context.anno.Order;
+import com.mdc.mspring.context.anno.Primary;
+import com.mdc.mspring.context.exception.BeanDefinitionException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -112,5 +111,15 @@ public class ClassUtils {
     public static boolean getPrimaryMethod(Method method) {
         Primary primary = ((Primary) method.getAnnotation(Primary.class));
         return primary != null && primary.value();
+    }
+
+    public static boolean isAnnotation(String className) {
+        try {
+            Class<?> clazz = Class.forName(className);
+            return clazz.isAnnotation();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
