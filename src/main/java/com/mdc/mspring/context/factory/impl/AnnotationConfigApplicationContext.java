@@ -2,7 +2,7 @@ package com.mdc.mspring.context.factory.impl;
 
 import com.mdc.mspring.context.anno.*;
 import com.mdc.mspring.context.entity.ioc.BeanPostProcessor;
-import com.mdc.mspring.context.factory.Context;
+import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
 import com.mdc.mspring.context.entity.Resource;
 import com.mdc.mspring.context.entity.ioc.BeanDefinition;
 import com.mdc.mspring.context.exception.BeanCreateException;
@@ -13,7 +13,6 @@ import com.mdc.mspring.context.resolver.ResourceResolver;
 import com.mdc.mspring.utils.ClassUtils;
 import com.mdc.mspring.utils.StringUtils;
 
-import javax.management.MBeanServerDelegate;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -27,14 +26,25 @@ import java.util.stream.Collectors;
  * @Date: 2023/08/11/15:28
  * @Description:
  */
-public class AnnotationConfigApplicationContext implements Context {
-    private record Result(Method factoryMethod, Object[] args) {
-    }
-
+public class AnnotationConfigApplicationContext implements ConfigurableApplicationContext {
     // save beanDefinition objects
     private Map<String, BeanDefinition> beans = new HashMap<>();
     private final PropertyResolver propertyResolver = new PropertyResolver();
     private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
+    private final Set<BeanDefinition> waiterDefinitions = new HashSet<>();
+
+    @Override
+    public Object createBeanAsEarlySingleton(BeanDefinition definition) {
+        try {
+            instantiateBean(definition);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return definition.getInstance();
+    }
+
+    private record Result(Method factoryMethod, Object[] args) {
+    }
 
     public AnnotationConfigApplicationContext(Class<?> confgClass, ResourceResolver resourceResolver, PropertyResolver propertyResolver) throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         // 1 get class names in scanPackage
@@ -71,6 +81,9 @@ public class AnnotationConfigApplicationContext implements Context {
                 definition.setInstance(definition.getDeclaredClass().getDeclaredConstructor().newInstance());
                 beanPostProcessors.add((BeanPostProcessor) definition.getInstance());
             }
+            if (definition.getInstance() instanceof Aware) {
+                ((Aware) definition.getInstance()).setContext(this);
+            }
         }
     }
 
@@ -90,7 +103,7 @@ public class AnnotationConfigApplicationContext implements Context {
                     Autowired autowired = (Autowired) field.getAnnotation(Autowired.class);
                     field.setAccessible(true);
                     if (StringUtils.isEmpty(autowired.value())) {
-                        field.set(definition.getOriginInstance(), getOrConstruct(field.getType(), new HashSet<>()));
+                        field.set(definition.getOriginInstance(), getOrConstruct(field.getType()));
                     } else {
                         Object bean = getBean(autowired.value());
                         field.set(definition.getOriginInstance(), bean);
@@ -107,11 +120,11 @@ public class AnnotationConfigApplicationContext implements Context {
 
     private void instantiateBeans() throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         for (BeanDefinition definition : this.beans.values()) {
-            instantiateBean(definition, new HashSet<>());
+            instantiateBean(definition);
         }
     }
 
-    private void instantiateBean(BeanDefinition definition, Set<BeanDefinition> waiterDefinitions) throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+    private void instantiateBean(BeanDefinition definition) throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         if (definition.getInstance() != null) {
             return;
         }
@@ -125,7 +138,7 @@ public class AnnotationConfigApplicationContext implements Context {
             // use factory method to instantiate
             Result result = getAllArgsOfMethod(factoryMethod, waiterDefinitions);
             // instantiate factory bean
-            Object factory = getOrConstruct(Class.forName(definition.getFactoryName()), waiterDefinitions);
+            Object factory = getOrConstruct(Class.forName(definition.getFactoryName()));
             definition.setInstance(result.factoryMethod().invoke(factory, result.args()));
         } else if (definition.getConstructor() != null) {
             // use constructor to instantiate
@@ -137,12 +150,13 @@ public class AnnotationConfigApplicationContext implements Context {
                 if (annotations[i] == null)
                     throw new BeanCreateException("all constructor args must be annotated by @Autowired");
                 if (StringUtils.isEmpty(((Autowired) annotations[i]).value()))
-                    args[i] = getOrConstruct(argTypes[i], waiterDefinitions);
+                    args[i] = getOrConstruct(argTypes[i]);
                 else
-                    args[i] = getOrConstruct(((Autowired) annotations[i]).value(), waiterDefinitions);
+                    args[i] = getOrConstruct(((Autowired) annotations[i]).value());
             }
             definition.setInstance(constructor.newInstance(args));
         }
+        invokeBeanPostProcessors(definition);
     }
 
     private Result getAllArgsOfMethod(Method factoryMethod, Set<BeanDefinition> waiterDefinitions) throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
@@ -154,31 +168,31 @@ public class AnnotationConfigApplicationContext implements Context {
             if (annotations[i] == null)
                 throw new BeanCreateException("all factory method args must be annotated by @Autowired");
             if (StringUtils.isEmpty(((Autowired) annotations[i]).value()))
-                args[i] = getOrConstruct(argTypes[i], waiterDefinitions);
+                args[i] = getOrConstruct(argTypes[i]);
             else
-                args[i] = getOrConstruct(((Autowired) annotations[i]).value(), waiterDefinitions);
+                args[i] = getOrConstruct(((Autowired) annotations[i]).value());
         }
         Result result = new Result(factoryMethod, args);
         return result;
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T getOrConstruct(Class<T> clazz, Set<BeanDefinition> waiterDefinitions) throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+    private <T> T getOrConstruct(Class<T> clazz) throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         BeanDefinition beanDefinition = findDefinition(clazz);
-        instantiateBean(beanDefinition, waiterDefinitions);
-//        for (BeanPostProcessor processor : this.beanPostProcessors) {
-//            if (beanDefinition.getOriginInstance() == null) {
-//                beanDefinition.setOriginInstance(beanDefinition.getInstance());
-//                beanDefinition.setInstance(processor.postProcessBeforeInitialization(beanDefinition.getInstance(), beanDefinition.getBeanName()));
-//            }
-//        }
+        instantiateBean(beanDefinition);
+        if (beanDefinition.getOriginInstance() instanceof Aware) {
+            ((Aware) beanDefinition.getOriginInstance()).setContext(this);
+        }
         invokeBeanPostProcessors(beanDefinition);
         return (T) beanDefinition.getInstance();
     }
 
-    private Object getOrConstruct(String beanName, Set<BeanDefinition> waiterDefinitions) throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+    private Object getOrConstruct(String beanName) throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         BeanDefinition beanDefinition = findDefinition(beanName);
-        instantiateBean(beanDefinition, waiterDefinitions);
+        instantiateBean(beanDefinition);
+        if (beanDefinition.getOriginInstance() instanceof Aware) {
+            ((Aware) beanDefinition.getOriginInstance()).setContext(this);
+        }
         invokeBeanPostProcessors(beanDefinition);
         return beanDefinition.getInstance();
     }
@@ -294,5 +308,53 @@ public class AnnotationConfigApplicationContext implements Context {
     @SuppressWarnings("unchecked")
     public <T> T getBean(Class<T> clazz) {
         return (T) findDefinition(clazz).getInstance();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> List<T> getBeans(Class<T> clazz) {
+        return (List<T>) findDefinitions(clazz).stream().map(BeanDefinition::getInstance).toList();
+    }
+
+    @Override
+    public void close() {
+        for (BeanDefinition definition : beans.values()) {
+            if (definition.getOriginInstance() != null) {
+                try {
+                    invokeDestroyMethod(definition);
+                } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void invokeDestroyMethod(BeanDefinition definition) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        if (definition.getDestroyMethod() != null) {
+            definition.getDestroyMethod().invoke(definition.getOriginInstance());
+        } else if (!StringUtils.isEmpty(definition.getDestroyMethodName())) {
+            Method destroyMethod = definition.getDeclaredClass().getMethod(definition.getDestroyMethodName());
+            destroyMethod.invoke(definition.getOriginInstance());
+        }
+    }
+
+    @Override
+    public List<BeanDefinition> findBeanDefinitions(Class<?> type) {
+        return findDefinitions(type);
+    }
+
+    @Override
+    public BeanDefinition findBeanDefinition(Class<?> type) {
+        return findDefinition(type);
+    }
+
+    @Override
+    public BeanDefinition findBeanDefinition(String name) {
+        return findDefinition(name);
+    }
+
+    @Override
+    public BeanDefinition findBeanDefinition(String name, Class<?> requiredType) {
+        return findDefinition(name);
     }
 }
