@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @Date: 2023/08/10/18:14
  * @Description:
  */
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Value {
     public String value();

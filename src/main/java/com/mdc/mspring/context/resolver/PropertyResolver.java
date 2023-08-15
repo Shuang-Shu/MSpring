@@ -3,8 +3,10 @@ package com.mdc.mspring.context.resolver;
 import com.mdc.mspring.context.entity.Resource;
 import org.yaml.snakeyaml.Yaml;
 
+import java.awt.geom.AffineTransform;
 import java.io.*;
 import java.net.URISyntaxException;
+import java.time.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,26 @@ public class PropertyResolver {
     private final Map<String, String> propertyMap = new HashMap<>();
     private final ResourceResolver resolver = new ResourceResolver("");
     private final Set<String> CONFIG_SET = Set.of(new String[]{".yaml", ".properties"});
+    private final static Map<Class<?>, Function<String, ?>> pasers = new HashMap<>();
+
+    static {
+        // String类型:
+        pasers.put(String.class, s -> s);
+        // boolean类型:
+        pasers.put(boolean.class, Boolean::parseBoolean);
+        pasers.put(Boolean.class, Boolean::valueOf);
+        // int类型:
+        pasers.put(int.class, Integer::parseInt);
+        pasers.put(Integer.class, Integer::valueOf);
+        // 其他基本类型...
+        // Date/Time类型:
+        pasers.put(LocalDate.class, LocalDate::parse);
+        pasers.put(LocalTime.class, LocalTime::parse);
+        pasers.put(LocalDateTime.class, LocalDateTime::parse);
+        pasers.put(ZonedDateTime.class, ZonedDateTime::parse);
+        pasers.put(Duration.class, Duration::parse);
+        pasers.put(ZoneId.class, ZoneId::of);
+    }
 
     public PropertyResolver() throws IOException, URISyntaxException {
         initMap();
@@ -101,7 +123,8 @@ public class PropertyResolver {
      * @Author: ShuangShu
      * @Date: 2023/8/10 21:50
      */
-    public static <T> T parseTo(Function<String, T> mapper, String value) {
-        return mapper.apply(value);
+    @SuppressWarnings("unchecked")
+    public static <T> T parseTo(Class<?> target, String value) {
+        return (T) pasers.get(target).apply(value);
     }
 }

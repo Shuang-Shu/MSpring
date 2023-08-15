@@ -6,6 +6,7 @@ import com.mdc.mspring.context.exception.BeanDefinitionException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.Set;
 
@@ -68,24 +69,24 @@ public class ClassUtils {
         return cons[0];
     }
 
-    public static Annotation[] getTargetAnnotaionOnConstructorArgs(Constructor<?> constructor, Class<? extends Annotation> annotationClass) {
+    public static Annotation[] getTargetAnnotaionOnConstructorArgs(Constructor<?> constructor, Set<Class<? extends Annotation>> annotationClassesSet) {
         var annotations = constructor.getParameterAnnotations();
         Annotation[] result = new Annotation[annotations.length];
-        getTargetAnnotation(annotations, result, annotationClass);
+        getTargetAnnotation(annotations, result, annotationClassesSet);
         return result;
     }
 
-    public static Annotation[] getTargetAnnotaionOnMethodArgs(Method method, Class<? extends Annotation> annotationClass) {
+    public static Annotation[] getTargetAnnotaionOnMethodArgs(Method method, Set<Class<? extends Annotation>> annotationClassesSet) {
         var annotations = method.getParameterAnnotations();
         Annotation[] result = new Annotation[annotations.length];
-        getTargetAnnotation(annotations, result, annotationClass);
+        getTargetAnnotation(annotations, result, annotationClassesSet);
         return result;
     }
 
-    private static void getTargetAnnotation(Annotation[][] annotations, Annotation[] target, Class<? extends Annotation> annotationClass) {
+    private static void getTargetAnnotation(Annotation[][] annotations, Annotation[] target, Set<Class<? extends Annotation>> annotationClassesSet) {
         for (int i = 0; i < annotations.length; i++) {
             for (Annotation annotation : annotations[i]) {
-                if (annotation.annotationType() == annotationClass) {
+                if (annotationClassesSet.contains(annotation.annotationType())) {
                     target[i] = annotation;
                     break;
                 }
@@ -98,18 +99,18 @@ public class ClassUtils {
         return order != null ? order.value() : 0;
     }
 
-    public static int getOrderMethod(Method method) {
-        Order order = (Order) method.getAnnotation(Order.class);
+    public static int getOrder(Executable executable) {
+        Order order = ((Order) executable.getAnnotation(Order.class));
         return order != null ? order.value() : 0;
     }
 
     public static boolean getPrimary(Class<?> clazz) {
-        Primary primary = ((Primary) clazz.getAnnotation(Primary.class));
+        Primary primary = (Primary) clazz.getAnnotation(Primary.class);
         return primary != null && primary.value();
     }
 
-    public static boolean getPrimaryMethod(Method method) {
-        Primary primary = ((Primary) method.getAnnotation(Primary.class));
+    public static boolean getPrimary(Executable executable) {
+        Primary primary = ((Primary) executable.getAnnotation(Primary.class));
         return primary != null && primary.value();
     }
 

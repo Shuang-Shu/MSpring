@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Bean {
-    public String value();
+    public String value() default "";
 
     public String destroyMethod() default "";
 

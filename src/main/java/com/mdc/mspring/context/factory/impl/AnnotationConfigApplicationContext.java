@@ -20,6 +20,8 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Set.of;
+
 /**
  * @Author: ShuangShu
  * @Email: 1103725164@qq.com
@@ -65,6 +67,19 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         setAllNullOriginInstance();
         // 6 inject weak dependencies, besides values
         injectWeakDependencies();
+        // 7 invoke initial methods for all (origin) beans
+        invokeInitialMethods();
+    }
+
+    private void invokeInitialMethods() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        for (BeanDefinition definition : beans.values()) {
+            if (definition.getInitMethod() != null) {
+                definition.getInitMethod().invoke(definition.getOriginInstance());
+            } else if (!StringUtils.isEmpty(definition.getInitMethodName())) {
+                Method initMethod = definition.getDeclaredClass().getMethod(definition.getInitMethodName());
+                initMethod.invoke(definition.getOriginInstance());
+            }
+        }
     }
 
     private void setAllNullOriginInstance() {
@@ -112,7 +127,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                 if (field.getAnnotation(Value.class) != null) {
                     Value value = (Value) field.getAnnotation(Value.class);
                     field.setAccessible(true);
-                    field.set(definition.getOriginInstance(), propertyResolver.getProperty(value.value()));
+                    field.set(definition.getOriginInstance(), PropertyResolver.parseTo(field.getType(), propertyResolver.getProperty(value.value())));
                 }
             }
         }
@@ -139,12 +154,14 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             Result result = getAllArgsOfMethod(factoryMethod, waiterDefinitions);
             // instantiate factory bean
             Object factory = getOrConstruct(Class.forName(definition.getFactoryName()));
+            result.factoryMethod().setAccessible(true);
             definition.setInstance(result.factoryMethod().invoke(factory, result.args()));
         } else if (definition.getConstructor() != null) {
             // use constructor to instantiate
             Constructor<?> constructor = definition.getConstructor();
+            constructor.setAccessible(true);
             Class<?>[] argTypes = constructor.getParameterTypes();
-            Annotation[] annotations = ClassUtils.getTargetAnnotaionOnConstructorArgs(constructor, Autowired.class);
+            Annotation[] annotations = ClassUtils.getTargetAnnotaionOnConstructorArgs(constructor, Set.of(Autowired.class, Value.class));
             Object[] args = new Object[argTypes.length];
             for (int i = 0; i < args.length; i++) {
                 if (annotations[i] == null)
@@ -161,16 +178,21 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
 
     private Result getAllArgsOfMethod(Method factoryMethod, Set<BeanDefinition> waiterDefinitions) throws InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         Class<?>[] argTypes = factoryMethod.getParameterTypes();
-        Annotation[] annotations = ClassUtils.getTargetAnnotaionOnMethodArgs(factoryMethod, Autowired.class);
+        Annotation[] annotations = ClassUtils.getTargetAnnotaionOnMethodArgs(factoryMethod, Set.
+                of(Autowired.class, Value.class));
         // instantiate args of factory method
         Object[] args = new Object[argTypes.length];
         for (int i = 0; i < args.length; i++) {
             if (annotations[i] == null)
                 throw new BeanCreateException("all factory method args must be annotated by @Autowired");
-            if (StringUtils.isEmpty(((Autowired) annotations[i]).value()))
-                args[i] = getOrConstruct(argTypes[i]);
-            else
-                args[i] = getOrConstruct(((Autowired) annotations[i]).value());
+            else if (annotations[i] instanceof Autowired) {
+                if (StringUtils.isEmpty(((Autowired) annotations[i]).value()))
+                    args[i] = getOrConstruct(argTypes[i]);
+                else
+                    args[i] = getOrConstruct(((Autowired) annotations[i]).value());
+            } else if (annotations[i] instanceof Value) {
+                args[i] = PropertyResolver.parseTo(argTypes[i], propertyResolver.getProperty(((Value) annotations[i]).value()));
+            }
         }
         Result result = new Result(factoryMethod, args);
         return result;
@@ -236,11 +258,14 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
 
     private void addBeanFactoryDefinition(Class<?> clazz, Map<String, BeanDefinition> result) throws NoSuchMethodException {
         Method[] methods = clazz.getMethods();
-        for (Method method : methods) {
+        Set<Method> methodSet = new HashSet<>();
+        methodSet.addAll(Arrays.asList(clazz.getMethods()));
+        methodSet.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+        for (Method method : methodSet) {
             if (method.getAnnotation(Bean.class) != null) {
                 Bean bean = method.getAnnotation(Bean.class);
                 Class<?> returnType = method.getReturnType();
-                BeanDefinition beanDefinition = BeanDefinition.builder().beanName(StringUtils.isEmpty(bean.value()) ? StringUtils.getLowerCase(returnType.getName()) : bean.value()).declaredClass(returnType).factoryMethod(method).factoryName(clazz.getName()).order(ClassUtils.getOrderMethod(method)).primary(ClassUtils.getPrimaryMethod(method)).initMethodName(bean.initMethod()).destroyMethodName(bean.destroyMethod()).build();
+                BeanDefinition beanDefinition = BeanDefinition.builder().beanName(StringUtils.isEmpty(bean.value()) ? StringUtils.getLowerCase(returnType.getName()) : bean.value()).declaredClass(returnType).factoryMethod(method).factoryName(clazz.getName()).order(ClassUtils.getOrder(method)).primary(ClassUtils.getPrimary(method)).initMethodName(bean.initMethod()).destroyMethodName(bean.destroyMethod()).build();
                 result.put(beanDefinition.getBeanName(), beanDefinition);
             }
         }
