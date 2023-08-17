@@ -1,5 +1,7 @@
 package com.mdc;
 
+import com.mdc.mspring.app.bean.TestImportBean;
+import com.mdc.mspring.app.bean.TestTopBean;
 import com.mdc.mspring.app.controller.TestController2;
 import com.mdc.mspring.app.service.TestService;
 import com.mdc.mspring.context.anno.ComponentScan;
@@ -93,16 +95,19 @@ public class MSpringTest {
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
                 TestConfig.class, resolver, propertyResolver
         );
-        TestController controller = applicationContext.getBean(TestController.class);
-        TestController2 controller2 = applicationContext.getBean(TestController2.class);
-        System.out.println(controller);
+        TestTopBean testTopBean = applicationContext.getBean(TestTopBean.class);
+        testTopBean.testEnhanced();
+        testTopBean.testNotEnhanced();
     }
 
     @Test
-    public void testNotRefField() {
-        Class<?> clazz = TestDao.class;
-        Field[] fields = clazz.getFields();
-        Class<?> fclazz = fields[0].getType();
-        System.out.println(fclazz);
+    public void testImportAnno() throws IOException, URISyntaxException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        ResourceResolver resolver = new ResourceResolver("com.mdc");
+        PropertyResolver propertyResolver = new PropertyResolver();
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
+                TestConfig.class, resolver, propertyResolver
+        );
+        TestImportBean testImportBean = applicationContext.getBean(TestImportBean.class);
+        System.out.println(testImportBean);
     }
 }

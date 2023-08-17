@@ -51,12 +51,15 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     public AnnotationConfigApplicationContext(Class<?> confgClass, ResourceResolver resourceResolver, PropertyResolver propertyResolver) throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         // 1 get class names in scanPackage
         String scanPackage = ((ComponentScan) Objects.requireNonNull(ClassUtils.getAnnotation(confgClass, ComponentScan.class, new HashSet<>()))).value();
-        List<String> classNames = resourceResolver.scan(scanPackage, Resource::name, ResourceResolver.CLASS_SUFFIX, -1).stream().map(n -> {
+        List<String> classNames = new ArrayList<>(resourceResolver.scan(scanPackage, Resource::name, ResourceResolver.CLASS_SUFFIX, -1).stream().map(n -> {
             n = n.replace('/', '.');
             return n.substring(0, n.length() - 6);
         }).filter(n -> {
             return !ClassUtils.isAnnotation(n);
-        }).toList();
+        }).toList());
+        // 1.2 get all bean names defined by @Import
+        if (confgClass.getAnnotation(Import.class) != null)
+            classNames.addAll(Arrays.stream(confgClass.getAnnotation(Import.class).value()).map(Class::getName).toList());
         // 2 create BeanDefinitions
         this.beans = createBeanDefinitions(classNames);
         // 3 get all beanPostPocessors
@@ -74,7 +77,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     private void invokeInitialMethods() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         for (BeanDefinition definition : beans.values()) {
             if (definition.getInitMethod() != null) {
-                definition.getInitMethod().invoke(definition.getOriginInstance());
+
             } else if (!StringUtils.isEmpty(definition.getInitMethodName())) {
                 Method initMethod = definition.getDeclaredClass().getMethod(definition.getInitMethodName());
                 initMethod.invoke(definition.getOriginInstance());
@@ -265,7 +268,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
             if (method.getAnnotation(Bean.class) != null) {
                 Bean bean = method.getAnnotation(Bean.class);
                 Class<?> returnType = method.getReturnType();
-                BeanDefinition beanDefinition = BeanDefinition.builder().beanName(StringUtils.isEmpty(bean.value()) ? StringUtils.getLowerCase(returnType.getName()) : bean.value()).declaredClass(returnType).factoryMethod(method).factoryName(clazz.getName()).order(ClassUtils.getOrder(method)).primary(ClassUtils.getPrimary(method)).initMethodName(bean.initMethod()).destroyMethodName(bean.destroyMethod()).build();
+                BeanDefinition beanDefinition = BeanDefinition.builder().beanName(StringUtils.isEmpty(bean.value()) ? StringUtils.getFirstCharLowerCase(StringUtils.simpleName(returnType.getName())) : bean.value()).declaredClass(returnType).factoryMethod(method).factoryName(clazz.getName()).order(ClassUtils.getOrder(method)).primary(ClassUtils.getPrimary(method)).initMethodName(bean.initMethod()).destroyMethodName(bean.destroyMethod()).build();
                 result.put(beanDefinition.getBeanName(), beanDefinition);
             }
         }

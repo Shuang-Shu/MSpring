@@ -4,7 +4,10 @@ import com.mdc.mspring.context.anno.Autowired;
 import com.mdc.mspring.context.anno.Bean;
 import com.mdc.mspring.context.anno.Configuration;
 import com.mdc.mspring.context.anno.Value;
+import com.mdc.mspring.jdbc.processor.TransactionalBeanPostProcessor;
 import com.mdc.mspring.jdbc.template.JdbcTemplate;
+import com.mdc.mspring.jdbc.tx.PlatformTransactionManager;
+import com.mdc.mspring.jdbc.tx.impl.DataSourceTransactionManager;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -45,5 +48,15 @@ public class JdbcConfiguration {
     @Bean(value = "jdbcTemplate")
     JdbcTemplate jdbcTemplate(@Autowired DataSource dataSource) {
         return new JdbcTemplate(dataSource);
+    }
+
+    @Bean
+    TransactionalBeanPostProcessor transactionBeanPostProcessor() {
+        return new TransactionalBeanPostProcessor();
+    }
+
+    @Bean
+    PlatformTransactionManager platformTransactionManager(@Autowired DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
     }
 }

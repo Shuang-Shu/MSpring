@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class ResourceResolver {
     Logger logger = LoggerFactory.getLogger(getClass());
     private final String basePackage; // format: com.example.demo
-    public static final Set<String>CLASS_SUFFIX =Set.of(".class");
+    public static final Set<String> CLASS_SUFFIX = Set.of(".class");
 
     public ResourceResolver(String basePackage) {
         this.basePackage = basePackage;

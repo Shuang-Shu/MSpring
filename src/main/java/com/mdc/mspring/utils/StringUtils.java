@@ -22,11 +22,9 @@ public class StringUtils {
         return new String(cs);
     }
 
-    public static String getLowerCase(String str) {
+    public static String getFirstCharLowerCase(String str) {
         char[] cs = str.toCharArray();
-        for (int i = 0; i < cs.length; i++) {
-            cs[i] = Character.toLowerCase(cs[i]);
-        }
+        cs[0] = Character.toLowerCase(cs[0]);
         return new String(cs);
     }
 }

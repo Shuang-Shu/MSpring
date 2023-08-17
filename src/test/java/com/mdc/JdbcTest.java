@@ -1,6 +1,8 @@
 package com.mdc;
 
 import com.mdc.mspring.app.config.TestConfig;
+import com.mdc.mspring.app.dao.TestDao;
+import com.mdc.mspring.app.dao.TestJdbcDao;
 import com.mdc.mspring.app.entity.Student;
 import com.mdc.mspring.context.factory.impl.AnnotationConfigApplicationContext;
 import com.mdc.mspring.context.resolver.PropertyResolver;
@@ -30,7 +32,7 @@ public class JdbcTest {
 
     @Before
     public void initContext() throws IOException, URISyntaxException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        ResourceResolver resolver = new ResourceResolver("com.mdc");
+        ResourceResolver resolver = new ResourceResolver("com.mdc.mspring");
         PropertyResolver propertyResolver = new PropertyResolver();
         this.applicationContext = new AnnotationConfigApplicationContext(
                 TestConfig.class, resolver, propertyResolver
@@ -65,5 +67,11 @@ public class JdbcTest {
 //        System.out.println(students);
         int studentAge = (Integer) jdbcTemplate.queryForNumber("SELECt age FROM student WHERE name = ?;", "赵刚");
         System.out.println(studentAge);
+    }
+
+    @Test
+    public void testTx() {
+        TestJdbcDao testJdbcDao = (TestJdbcDao) applicationContext.getBean("testJdbcDao");
+        testJdbcDao.testJdbc();
     }
 }
