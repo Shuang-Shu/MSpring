@@ -10,6 +10,7 @@ import com.mdc.mspring.context.exception.DuplicatedBeanNameException;
 import com.mdc.mspring.context.exception.NoUniqueBeanDefinitionException;
 import com.mdc.mspring.context.resolver.PropertyResolver;
 import com.mdc.mspring.context.resolver.ResourceResolver;
+import com.mdc.mspring.mvc.anno.Controller;
 import com.mdc.mspring.utils.ClassUtils;
 import com.mdc.mspring.utils.StringUtils;
 
@@ -51,6 +52,9 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     public AnnotationConfigApplicationContext(Class<?> confgClass, ResourceResolver resourceResolver, PropertyResolver propertyResolver) throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         // 1 get class names in scanPackage
         String scanPackage = ((ComponentScan) Objects.requireNonNull(ClassUtils.getAnnotation(confgClass, ComponentScan.class, new HashSet<>()))).value();
+        if (StringUtils.isEmpty(scanPackage)) {
+            scanPackage = confgClass.getPackageName();
+        }
         List<String> classNames = new ArrayList<>(resourceResolver.scan(scanPackage, Resource::name, ResourceResolver.CLASS_SUFFIX, -1).stream().map(n -> {
             n = n.replace('/', '.');
             return n.substring(0, n.length() - 6);
@@ -384,5 +388,14 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     @Override
     public BeanDefinition findBeanDefinition(String name, Class<?> requiredType) {
         return findDefinition(name);
+    }
+
+    @Override
+    public List<BeanDefinition> getBeanDefinitionsByAnnotation(Class<? extends Annotation> anno) {
+        return beans.values().stream().filter(
+                bd -> {
+                    return ClassUtils.getAnnotation(bd.getDeclaredClass(), Controller.class, new HashSet<>()) != null;
+                }
+        ).toList();
     }
 }

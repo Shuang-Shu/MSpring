@@ -3,6 +3,7 @@ package com.mdc.mspring.context.factory;
 import com.mdc.mspring.context.anno.Nullable;
 import com.mdc.mspring.context.entity.ioc.BeanDefinition;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
@@ -22,6 +23,8 @@ public interface ConfigurableApplicationContext extends Context {
 
     @Nullable
     BeanDefinition findBeanDefinition(String name, Class<?> requiredType);
+
+    List<BeanDefinition> getBeanDefinitionsByAnnotation(Class<? extends Annotation> anno);
 
     Object createBeanAsEarlySingleton(BeanDefinition def);
 }

@@ -60,6 +60,10 @@ public class PropertyResolver {
         }
     }
 
+    public Map<String, String> getCopiedMap() {
+        return new HashMap<>(this.propertyMap);
+    }
+
     private void parseProperties(File f) throws IOException {
         BufferedReader bfr = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
         String line;

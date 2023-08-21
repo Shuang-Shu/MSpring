@@ -1,6 +1,6 @@
 package com.mdc.mspring.aop.resolver;
 
-import com.mdc.mspring.app.anno.Enhanced;
+import com.mdc.mspring.aop.anno.Enhanced;
 import com.mdc.mspring.context.anno.Autowired;
 import com.mdc.mspring.context.anno.Component;
 import net.bytebuddy.ByteBuddy;
