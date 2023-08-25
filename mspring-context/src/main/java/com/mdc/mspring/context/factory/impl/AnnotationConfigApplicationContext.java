@@ -26,39 +26,14 @@ import java.util.stream.Collectors;
  * @Description:
  */
 public class AnnotationConfigApplicationContext implements ConfigurableApplicationContext {
+    private record Result(Method factoryMethod, Object[] args) {
+    }
+
     // save beanDefinition objects
     private Map<String, BeanDefinition> beans = new HashMap<>();
     private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
     private final Set<BeanDefinition> waiterDefinitions = new HashSet<>();
     private final ResourceResolver resourceResolver;
-
-    @Override
-    public Object createBeanAsEarlySingleton(BeanDefinition definition) {
-        try {
-            instantiateBean(definition);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return definition.getInstance();
-    }
-
-    private record Result(Method factoryMethod, Object[] args) {
-    }
-
-    private static String getScanClass(Class<?> confgClass) {
-        ComponentScan componentSacn = (ComponentScan) ClassUtils.getAnnotation(confgClass, ComponentScan.class,
-                new HashSet<>());
-        String scanPackage = null;
-        if (componentSacn == null) {
-            scanPackage = confgClass.getPackageName();
-        } else {
-            scanPackage = componentSacn.value();
-        }
-        if (StringUtils.isEmpty(scanPackage)) {
-            scanPackage = confgClass.getPackageName();
-        }
-        return scanPackage;
-    }
 
     public AnnotationConfigApplicationContext(Class<?> configClass)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException,
@@ -109,6 +84,31 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         }
     }
 
+    @Override
+    public Object createBeanAsEarlySingleton(BeanDefinition definition) {
+        try {
+            instantiateBean(definition);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return definition.getInstance();
+    }
+
+    private static String getScanClass(Class<?> confgClass) {
+        ComponentScan componentSacn = (ComponentScan) ClassUtils.getAnnotation(confgClass, ComponentScan.class,
+                new HashSet<>());
+        String scanPackage = null;
+        if (componentSacn == null) {
+            scanPackage = confgClass.getPackageName();
+        } else {
+            scanPackage = componentSacn.value();
+        }
+        if (StringUtils.isEmpty(scanPackage)) {
+            scanPackage = confgClass.getPackageName();
+        }
+        return scanPackage;
+    }
+
     private void setAllNullOriginInstance() {
         for (BeanDefinition definition : this.beans.values()) {
             if (definition.getOriginInstance() == null) {
@@ -154,7 +154,6 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                     }
                 }
                 if (field.getAnnotation(Value.class) != null) {
-                    Value value = (Value) field.getAnnotation(Value.class);
                     field.setAccessible(true);
                     field.set(definition.getOriginInstance(),
                             ResourceResolver.parseTo(field.getType(), null));
@@ -441,5 +440,9 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
                 bd -> {
                     return ClassUtils.getAnnotation(bd.getDeclaredClass(), anno, new HashSet<>()) != null;
                 }).toList();
+    }
+
+    public void setProperties(Properties properties) {
+        this.resourceResolver.setProperties(properties);
     }
 }

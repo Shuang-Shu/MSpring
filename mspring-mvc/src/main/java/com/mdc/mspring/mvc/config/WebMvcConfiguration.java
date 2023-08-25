@@ -19,15 +19,15 @@ import java.util.Objects;
 public class WebMvcConfiguration {
     private static ServletContext servletContext = null;
 
-    public static void setServletContext(ServletContext servletContext) {
-        WebMvcConfiguration.servletContext = servletContext;
+    public static void setServletContext(ServletContext ctx) {
+        servletContext = ctx;
     }
 
     @Bean
     ViewResolver viewResolver(//
-            @Autowired ServletContext servletContext, //
-            @Value("${summer.web.freemarker.template-path:/WEB-INF/templates}") String templatePath, //
-            @Value("${summer.web.freemarker.template-encoding:UTF-8}") String templateEncoding) {
+                              @Autowired ServletContext servletContext, //
+                              @Value("${summer.web.freemarker.template-path:/WEB-INF/templates}") String templatePath, //
+                              @Value("${summer.web.freemarker.template-encoding:UTF-8}") String templateEncoding) {
         return new FreeMarkerViewResolver(servletContext, templatePath, templateEncoding);
     }
 

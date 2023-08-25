@@ -1,11 +1,11 @@
 package com.mdc.mspring.jdbc.template;
 
+import com.mdc.mspring.context.utils.MapperUtils;
 import com.mdc.mspring.jdbc.RowMapper;
 import com.mdc.mspring.jdbc.callback.ConnectionCallback;
 import com.mdc.mspring.jdbc.callback.PreparedStatementCallback;
 import com.mdc.mspring.jdbc.callback.PreparedStatementCreator;
 import com.mdc.mspring.jdbc.exception.DataAccessException;
-import com.mdc.mspring.utils.MapperUtils;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -40,8 +40,7 @@ public class JdbcTemplate {
                     try (PreparedStatement ps = creator.createPreparedStatement(con)) {
                         return action.doInPreparedStatement(ps);
                     }
-                }
-        );
+                });
     }
 
     public int update(String sql, Object... args) {
@@ -49,8 +48,7 @@ public class JdbcTemplate {
                 getPreparedStatementCreator(sql, args),
                 (PreparedStatement ps) -> {
                     return ps.executeUpdate();
-                }
-        );
+                });
     }
 
     public <T> List<T> queryForList(String sql, RowMapper<T> rowMapper, Object... args) {
@@ -64,8 +62,7 @@ public class JdbcTemplate {
                         }
                         return result;
                     }
-                }
-        );
+                });
     }
 
     public <T> List<T> queryForList(String sql, Class<T> clazz, Object... args) {
@@ -83,8 +80,7 @@ public class JdbcTemplate {
                         }
                         return result;
                     }
-                }
-        );
+                });
     }
 
     public Number queryForNumber(String sql, Object... args) {
@@ -106,8 +102,7 @@ public class JdbcTemplate {
                         }
                         return result;
                     }
-                }
-        );
+                });
     }
 
     public <T> T queryForObject(String sql, RowMapper<T> rowMapper, Object... args) {
@@ -121,8 +116,7 @@ public class JdbcTemplate {
                         }
                         return result;
                     }
-                }
-        );
+                });
     }
 
     public Number updateAndReturnGeneratedKey(String sql, Object... args) {

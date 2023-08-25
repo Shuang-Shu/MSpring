@@ -4,16 +4,14 @@ import com.mdc.mspring.context.anno.Aware;
 import com.mdc.mspring.context.entity.ioc.BeanDefinition;
 import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
 import com.mdc.mspring.context.factory.Context;
-import com.mdc.mspring.context.resolver.ResourceResolver;
-import com.mdc.mspring.mvc.anno.Controller;
-import com.mdc.mspring.mvc.anno.RequestMapping;
-import com.mdc.mspring.mvc.anno.ResponseBody;
-import com.mdc.mspring.mvc.anno.RestController;
+import com.mdc.mspring.mvc.anno.*;
 import com.mdc.mspring.mvc.entity.Dispatcher;
 import com.mdc.mspring.mvc.entity.Param;
 import com.mdc.mspring.mvc.utils.JsonUtils;
 import com.mdc.mspring.mvc.utils.RegUtils;
 
+import com.mdc.mspring.mvc.utils.StringUtils;
+import com.mdc.mspring.mvc.utils.UrlUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,17 +37,16 @@ public class DispatcherServlet extends HttpServlet implements Aware {
     final List<Dispatcher> dispatcherList = new ArrayList<>();
 
     private ConfigurableApplicationContext context;
-    private ResourceResolver resourceResolver;
 
     public DispatcherServlet() {
         super();
         initDispatchers();
     }
 
-    public DispatcherServlet(ConfigurableApplicationContext context, ResourceResolver resourceResolver) {
+    public DispatcherServlet(ConfigurableApplicationContext context) {
         super();
         this.context = context;
-        this.resourceResolver = resourceResolver;
+        initDispatchers();
     }
 
     private void initDispatchers() {
@@ -62,7 +60,7 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                     if (bd.getDeclaredClass().getAnnotation(RequestMapping.class) != null) {
                         baseSb.append(bd.getDeclaredClass().getAnnotation(RequestMapping.class).value());
                     }
-                    if (!baseSb.toString().endsWith("/")) {
+                    if (baseSb.toString().endsWith("/")) {
                         // 截断最后一个/
                         baseSb.deleteCharAt(baseSb.length() - 1);
                     }
@@ -72,6 +70,10 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                         StringBuilder sb = new StringBuilder();
                         if (method.isAnnotationPresent(RequestMapping.class)) {
                             sb.append(method.getAnnotation(RequestMapping.class).value());
+                        } else if (method.isAnnotationPresent(GetMapping.class)) {
+                            sb.append(method.getAnnotation(GetMapping.class).value());
+                        } else if (method.isAnnotationPresent(PostMapping.class)) {
+                            sb.append(method.getAnnotation(PostMapping.class).value());
                         } else {
                             continue;
                         }
@@ -83,14 +85,14 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                         if (sb.toString().endsWith("/")) {
                             sb.deleteCharAt(sb.length() - 1);
                         }
-                        Param[] params = Param.parse(method, bd);
+                        Param[] params = Param.parse(method);
                         String urlPattern = baseSb.toString() + sb.toString();
                         Dispatcher dispatcher = Dispatcher.builder()
                                 .isRest(isRest)
                                 .isResponseBody(isResponseBody)
                                 .isVoid(isVoid)
                                 .urlPatternStr(urlPattern)
-                                .urlPattern(Pattern.compile(urlPattern))
+                                .urlPattern(Pattern.compile(RegUtils.formatPatternString(urlPattern)))
                                 .controller(context.getBean(bd.getBeanName()))
                                 .handlerMethod(method)
                                 .methodParameters(params)
@@ -112,18 +114,36 @@ public class DispatcherServlet extends HttpServlet implements Aware {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String url = req.getRequestURL().toString();
+        String url = UrlUtils.getRelativeUrl(req.getRequestURL().toString());
         for (Dispatcher dispatcher : this.dispatcherList) {
             // 如果匹配到url
             if (dispatcher.getUrlPattern().matcher(url).matches()) {
                 // 解析所有参数
                 Map<String, Object> allParams = parseAllParams(dispatcher, req, url);
-                // 获取Param数组
-
-                break;
+                // TODO 获取Param数组
+                Object[] params = parseParams(allParams, dispatcher.getMethodParameters());
+                // TODO 调用方法
+                Object result = null;
+                try {
+                    result = dispatcher.getHandlerMethod().invoke(dispatcher.getController(), params);
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    resp.sendError(500, "server error");
+                    throw new RuntimeException(e);
+                }
+                // TODO 处理返回值（目前仅支持ResponseBody）
+                resp.getWriter().write((String) result);
+                return;
             }
         }
         throw new ServletException("no matching handler");
+    }
+
+    private Object[] parseParams(Map<String, Object> allParams, Param[] paramDefs) {
+        Object[] result = new Object[paramDefs.length];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = StringUtils.parseStr((String) allParams.get(paramDefs[i].getName()), paramDefs[i].getClassType());
+        }
+        return result;
     }
 
     private Map<String, Object> parseAllParams(Dispatcher dispatcher, HttpServletRequest req, String url)
@@ -139,7 +159,7 @@ public class DispatcherServlet extends HttpServlet implements Aware {
             allParams.put(headerName, req.getHeader(headerName));
         }
         // 1.3 解析body中的所有参数
-        if (req.getMethod() == "POST") {
+        if (req.getMethod().equals("POST")) {
             // 以Json串形式获取body
             StringBuilder sb = new StringBuilder();
             BufferedReader reader = req.getReader();

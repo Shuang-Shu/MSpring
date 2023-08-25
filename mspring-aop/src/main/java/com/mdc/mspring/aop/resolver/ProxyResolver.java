@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 public class ProxyResolver {
     ByteBuddy byteBuddy = new ByteBuddy();
 
+    @SuppressWarnings("unchecked")
     public <T> T createProxy(T bean, InvocationHandler handler) {
         Class<T> beanClazz = (Class<T>) bean.getClass();
         Class<?> proxyClass = byteBuddy

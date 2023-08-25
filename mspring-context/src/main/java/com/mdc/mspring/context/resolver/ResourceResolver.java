@@ -3,8 +3,6 @@ package com.mdc.mspring.context.resolver;
 import com.mdc.mspring.context.entity.Resource;
 
 import com.mdc.mspring.context.utils.YamlUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;

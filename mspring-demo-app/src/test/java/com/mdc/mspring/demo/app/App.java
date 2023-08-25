@@ -8,8 +8,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 
 public class App {
-    public static void main(String[] args) throws IOException, URISyntaxException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext(TestConfig.class);
-        System.out.println(annotationConfigApplicationContext.getBean("student"));
+    public static void main(String[] args) throws IOException, URISyntaxException, ClassNotFoundException,
+            InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        try (AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext(
+                TestConfig.class)) {
+            System.out.println(annotationConfigApplicationContext.getBean("student"));
+        }
     }
 }

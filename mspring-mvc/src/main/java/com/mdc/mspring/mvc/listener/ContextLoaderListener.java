@@ -2,7 +2,6 @@ package com.mdc.mspring.mvc.listener;
 
 import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
 import com.mdc.mspring.context.factory.impl.AnnotationConfigApplicationContext;
-import com.mdc.mspring.context.resolver.ResourceResolver;
 import com.mdc.mspring.mvc.config.WebMvcConfiguration;
 import com.mdc.mspring.mvc.servlet.DispatcherServlet;
 
@@ -46,9 +45,8 @@ public class ContextLoaderListener implements ServletContextListener {
     private ConfigurableApplicationContext createApplicationContext(ServletContextEvent sce)
             throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException,
             InstantiationException, IllegalAccessException, ClassNotFoundException {
-        ResourceResolver resolver = new ResourceResolver("com.mdc");
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(
-                WebMvcConfiguration.class, resolver);
+                WebMvcConfiguration.class);
         return applicationContext;
     }
 }
