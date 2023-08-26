@@ -2,6 +2,7 @@ package com.mdc.mspring.context.factory;
 
 import com.mdc.mspring.context.anno.Nullable;
 import com.mdc.mspring.context.entity.ioc.BeanDefinition;
+import com.mdc.mspring.context.resolver.ResourceResolver;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -27,4 +28,6 @@ public interface ConfigurableApplicationContext extends Context {
     List<BeanDefinition> getBeanDefinitionsByAnnotation(Class<? extends Annotation> anno);
 
     Object createBeanAsEarlySingleton(BeanDefinition def);
+
+    ResourceResolver getResourceResolver();
 }

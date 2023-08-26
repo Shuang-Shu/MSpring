@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @Date: 2023/08/21/12:19
  * @Description:
  */
-@Target({ ElementType.PARAMETER })
+@Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequestParam {
     boolean required() default true;

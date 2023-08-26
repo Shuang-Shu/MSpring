@@ -5,6 +5,7 @@ import com.mdc.mspring.context.entity.ioc.BeanDefinition;
 import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
 import com.mdc.mspring.context.factory.Context;
 import com.mdc.mspring.mvc.anno.*;
+import com.mdc.mspring.mvc.config.WebMvcConfiguration;
 import com.mdc.mspring.mvc.entity.Dispatcher;
 import com.mdc.mspring.mvc.entity.ModelAndView;
 import com.mdc.mspring.mvc.entity.Param;
@@ -13,6 +14,8 @@ import com.mdc.mspring.mvc.utils.JsonUtils;
 import com.mdc.mspring.mvc.utils.RegUtils;
 import com.mdc.mspring.mvc.utils.StringUtils;
 import com.mdc.mspring.mvc.utils.UrlUtils;
+import com.mdc.mspring.mvc.view.ViewResolver;
+import com.mdc.mspring.mvc.view.impl.FreeMarkerViewResolver;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -20,11 +23,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +45,8 @@ public class DispatcherServlet extends HttpServlet implements Aware {
     final List<Dispatcher> dispatcherList = new ArrayList<>();
 
     private ConfigurableApplicationContext context;
+    private String resourcePath;
+    private ViewResolver viewResolver;
 
     public DispatcherServlet() {
         super();
@@ -49,8 +55,13 @@ public class DispatcherServlet extends HttpServlet implements Aware {
 
     public DispatcherServlet(ConfigurableApplicationContext context) {
         super();
+        this.resourcePath = context.getResourceResolver().getProperty("${mspring.web.static-path:/static/}");
         this.context = context;
         init();
+    }
+
+    private void initViewResolver() {
+        this.viewResolver = new FreeMarkerViewResolver(WebMvcConfiguration.getServletContext(), context.getResourceResolver().getProperty("${mspring.web.web.template-path:/templates/}"), "UTF-8");
     }
 
     @Override
@@ -103,6 +114,7 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                         dispatcherList.add(dispatcher);
                     }
                 });
+        initViewResolver();
     }
 
     @Override
@@ -115,7 +127,12 @@ public class DispatcherServlet extends HttpServlet implements Aware {
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // 判断req类型
         if (req.getMethod().equals("GET")) {
-            doGet(req, resp);
+            if (req.getRequestURI().startsWith(resourcePath)) {
+                doResource(req.getRequestURI(), req, resp);
+                return;
+            } else {
+                doGet(req, resp);
+            }
         } else if (req.getMethod().equals("POST")) {
             doPost(req, resp);
         }
@@ -132,8 +149,25 @@ public class DispatcherServlet extends HttpServlet implements Aware {
     }
 
     // 用于获取资源
-    private void doResource(HttpServletRequest req, HttpServletResponse resp) {
-
+    private void doResource(String url, HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        ServletContext ctx = req.getServletContext();
+        try (InputStream input = ctx.getResourceAsStream(url)) {
+            if (input == null) {
+                resp.sendError(404, "Not Found");
+            } else {
+                int n = url.indexOf("/");
+                if (n > 0) {
+                    url = url.substring(n + 1);
+                }
+                String mime = ctx.getMimeType(url);
+                if (com.mdc.mspring.context.utils.StringUtils.isEmpty(mime)) {
+                    mime = "application/octet-stream";
+                }
+                resp.setContentType(mime);
+                input.transferTo(resp.getOutputStream());
+                resp.getOutputStream().flush();
+            }
+        }
     }
 
     private void doService(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -142,11 +176,9 @@ public class DispatcherServlet extends HttpServlet implements Aware {
             // 如果匹配到url
             if (dispatcher.getUrlPattern().matcher(url).matches()) {
                 // 解析所有参数
-                Map<String, Object> allParams = parseAllParams(dispatcher, req);
-                // TODO 区分不同参数类型集合
                 Object[] params = null;
                 try {
-                    params = parseParams(dispatcher.getMethodParameters(), dispatcher, req);
+                    params = parseParams(dispatcher.getMethodParameters(), dispatcher, req, resp);
                 } catch (ServletParamParseException e) {
                     resp.sendError(400, e.getMessage());
                     return;
@@ -160,14 +192,14 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                     throw new RuntimeException(e);
                 }
                 // TODO 处理返回值（目前仅支持String和void的返回值）
-                postResponseProcess(dispatcher.isRest(), dispatcher.isResponseBody(), dispatcher.isVoid(), result, resp);
+                postResponseProcess(dispatcher.isRest(), dispatcher.isResponseBody(), dispatcher.isVoid(), result, req, resp);
                 return;
             }
         }
         throw new ServletException("no matching handler");
     }
 
-    private void postResponseProcess(boolean isRest, boolean isResponseBody, boolean isVoid, Object result, HttpServletResponse response) throws ServletException, IOException {
+    private void postResponseProcess(boolean isRest, boolean isResponseBody, boolean isVoid, Object result, HttpServletRequest req, HttpServletResponse response) throws ServletException, IOException {
         if (isRest) {
             if (!response.isCommitted()) {
                 response.setContentType("application/json;charset=utf-8");
@@ -219,14 +251,19 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                     throw new ServletException("Unable to process byte[] result when handling url ");
                 }
             } else if (result instanceof ModelAndView mv) {
-                // TODO 处理ModelAndView
+                String view = mv.getView();
+                if (view.startsWith("redirect:")) {
+                    response.sendRedirect(view.substring(9));
+                } else {
+                    this.viewResolver.render(mv.getView(), mv.getModel(), req, response);
+                }
             } else if (!isVoid && result != null) {
                 throw new ServletException("Unable to process " + result.getClass().getName() + " result when handling url");
             }
         }
     }
 
-    private Object[] parseParams(Param[] paramDefs, Dispatcher dispatcher, HttpServletRequest req) throws IOException, ServletParamParseException {
+    private Object[] parseParams(Param[] paramDefs, Dispatcher dispatcher, HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletParamParseException {
         Object[] result = new Object[paramDefs.length];
         var urlParams = parseUrl(dispatcher, req);
         var extraParams = parseParam(req); // http://localhost:8080/hello?name=123 (name is an extra param)
@@ -237,13 +274,17 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                         result[i] = StringUtils.parseStr((String) urlParams.get(paramDefs[i].getName()), paramDefs[i].getClassType());
                 case REQUEST_PARAM ->
                         result[i] = StringUtils.parseStr((String) extraParams.get(paramDefs[i].getName()), paramDefs[i].getClassType());
-                case REQUEST_BODY ->
-                        result[i] = StringUtils.parseStr((String) bodyParams.get(paramDefs[i].getName()), paramDefs[i].getClassType());
+                case REQUEST_BODY -> {
+                    result[i] = StringUtils.parseStr((String) bodyParams.get(paramDefs[i].getName()), paramDefs[i].getClassType());
+                    if (result[i] == null) {
+                        result[i] = JsonUtils.parseObject(JsonUtils.writeJson(bodyParams), paramDefs[i].getClassType());
+                    }
+                }
                 case SERVLET_VARIABLE -> {
                     if (paramDefs[i].getClassType().equals(HttpServletRequest.class)) {
                         result[i] = req;
                     } else if (paramDefs[i].getClassType().equals(HttpServletResponse.class)) {
-                        result[i] = req;
+                        result[i] = resp;
                     } else if (paramDefs[i].getClassType().equals(HttpSession.class)) {
                         result[i] = req.getSession();
                     } else if (paramDefs[i].getClassType().equals(ServletContext.class)) {
@@ -253,10 +294,11 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                 default -> throw new RuntimeException("unknown param type");
             }
             if (result[i] == null) {
-                if (paramDefs[i].isRequired()) {
+                if (!com.mdc.mspring.context.utils.StringUtils.isEmpty(paramDefs[i].getDefaultValue())) {
+                    result[i] = paramDefs[i].getDefaultValue();
+                } else if (paramDefs[i].isRequired()) {
                     throw new ServletParamParseException("param " + paramDefs[i].getName() + " is required");
                 }
-                result[i] = paramDefs[i].getDefaultValue();
             }
         }
         return result;
@@ -292,13 +334,9 @@ public class DispatcherServlet extends HttpServlet implements Aware {
 
     private Map<String, Object> parseBody(HttpServletRequest req) throws IOException {
         Map<String, Object> result = new HashMap<>();
-        // 以Json串形式获取body
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = req.getReader();
-        while (reader.readLine() != null) {
-            sb.append(reader.readLine());
-        }
-        result.putAll(JsonUtils.parseMap(sb.toString()));
+        byte[] bodyData = req.getInputStream().readAllBytes();
+        String bodyStr = new String(bodyData, Charset.forName("UTF-8"));
+        result.putAll(JsonUtils.parseMap(bodyStr));
         return result;
     }
 

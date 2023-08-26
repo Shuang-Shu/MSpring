@@ -84,7 +84,7 @@ public class Param {
                         // 获取参数名（针对非SERVLET_VARIABLE类型的参数）
                         String defaultValue = "";
                         String name = "";
-                        boolean required = true;
+                        boolean required = false;
                         try {
                             required = Boolean.TRUE.equals(ClassUtils.callMethodOf(annotation, "required", Boolean.class));
                             name = ClassUtils.callMethodOf(annotation, "value", String.class);

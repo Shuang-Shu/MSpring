@@ -94,6 +94,11 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         return definition.getInstance();
     }
 
+    @Override
+    public ResourceResolver getResourceResolver() {
+        return this.resourceResolver;
+    }
+
     private static String getScanClass(Class<?> confgClass) {
         ComponentScan componentSacn = (ComponentScan) ClassUtils.getAnnotation(confgClass, ComponentScan.class,
                 new HashSet<>());

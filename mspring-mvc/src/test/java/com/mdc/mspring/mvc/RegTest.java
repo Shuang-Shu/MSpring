@@ -10,7 +10,7 @@ public class RegTest {
     @Test
     public void testRegBasic() {
         String pattern = "/hello/{name}";
-        String url = "/hello/mdc";
+        String url = "/hello/mdc.jar";
         System.out.println(RegUtils.parse(pattern, url));
         String url2 = "/hello/123";
         System.out.println(RegUtils.parse(pattern, url2));
@@ -19,7 +19,7 @@ public class RegTest {
     @Test
     public void testMatch() {
         String pattern = "/hello/{name}";
-        String url = "/hello/mdc";
+        String url = "/hello/mdc.jar";
         Pattern valPattern = Pattern.compile(RegUtils.formatPatternString(pattern));
         Matcher valMatcher = valPattern.matcher(url);
         System.out.println(valMatcher.matches());

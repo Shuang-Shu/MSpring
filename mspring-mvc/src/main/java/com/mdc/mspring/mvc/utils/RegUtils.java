@@ -1,13 +1,13 @@
 package com.mdc.mspring.mvc.utils;
 
+import com.mdc.mspring.mvc.exception.JsonParseException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.mdc.mspring.mvc.exception.JsonParseException;
 
 public class RegUtils {
     public static List<String> getUrlkeys(String urlString) {
@@ -21,7 +21,7 @@ public class RegUtils {
     }
 
     public static String formatPatternString(String urlString) {
-        return urlString.replaceAll("\\{\\w+\\}", "(\\\\w+)");
+        return urlString.replaceAll("\\{([^\\}]+)\\}", "([^[\\)/]]+)");
     }
 
     public static Map<String, String> parse(String patternString, String string) {

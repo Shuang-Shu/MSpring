@@ -116,7 +116,7 @@ public class MvcTest {
 
     @Test
     public void getDownload() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/download/server.jar", null,
+        var req = createMockRequest("GET", "/static/test.txt", null,
                 Map.of("hasChecksum", "true", "length", "8", "time", "123.4", "md5",
                         "aee9e38cb4d40ec2794542567539b4c8"));
         var resp = createMockResponse();
@@ -133,7 +133,7 @@ public class MvcTest {
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
-        assertEquals("application/json", resp.getContentType());
+        assertEquals("application/json;charset=utf-8", resp.getContentType());
         assertTrue(resp.getContentAsString().contains("\"file\":\"server.jar\""));
         assertTrue(resp.getContentAsString().contains("\"length\":8"));
         assertTrue(resp.getContentAsString().contains("\"content\":\"QUFBQUFBQUE=\""));

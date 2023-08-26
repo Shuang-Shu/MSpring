@@ -21,7 +21,7 @@ public class StringUtils {
         } else if (clazz == Character.class || clazz == char.class) {
             return str.charAt(0);
         } else {
-            return null;
+            return str == null ? null : JsonUtils.parseObject(str, clazz);
         }
     }
 }

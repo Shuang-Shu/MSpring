@@ -34,6 +34,7 @@ public class FreeMarkerViewResolver implements ViewResolver {
         this.servletContext = servletContext;
         this.templatePath = templatePath;
         this.templateEncoding = templateEncoding;
+        this.init();
     }
 
     @Override

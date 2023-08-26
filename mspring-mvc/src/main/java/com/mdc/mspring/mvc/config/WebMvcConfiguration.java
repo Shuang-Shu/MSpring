@@ -5,6 +5,7 @@ import com.mdc.mspring.mvc.view.ViewResolver;
 import com.mdc.mspring.mvc.view.impl.FreeMarkerViewResolver;
 
 import jakarta.servlet.ServletContext;
+import lombok.Getter;
 
 import java.util.Objects;
 
@@ -17,6 +18,7 @@ import java.util.Objects;
 @Configuration
 @ComponentScan("com.mdc.mspring.mvc")
 public class WebMvcConfiguration {
+    @Getter
     private static ServletContext servletContext = null;
 
     public static void setServletContext(ServletContext ctx) {
