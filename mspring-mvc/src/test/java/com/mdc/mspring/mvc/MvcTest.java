@@ -65,7 +65,7 @@ public class MvcTest {
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
-        assertEquals("hello: Bob", resp.getContentAsString());
+        assertEquals("Hello, Bob", resp.getContentAsString());
     }
 
     @Test
@@ -74,7 +74,7 @@ public class MvcTest {
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
-        assertEquals("application/json", resp.getContentType());
+        assertEquals("application/json;charset=utf-8", resp.getContentType());
         assertEquals("{\"name\":\"Bob\"}", resp.getContentAsString());
     }
 
@@ -93,7 +93,7 @@ public class MvcTest {
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
-        assertEquals("application/json", resp.getContentType());
+        assertEquals("application/json;charset=utf-8", resp.getContentType());
         assertEquals("{\"action\":{\"name\":\"Bob\"}}", resp.getContentAsString());
     }
 
