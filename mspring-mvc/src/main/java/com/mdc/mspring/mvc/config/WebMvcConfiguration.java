@@ -32,8 +32,8 @@ public class WebMvcConfiguration {
     @Bean
     ViewResolver viewResolver(//
                               @Autowired ServletContext servletContext, //
-                              @Value("${summer.web.freemarker.template-path:/WEB-INF/templates}") String templatePath, //
-                              @Value("${summer.web.freemarker.template-encoding:UTF-8}") String templateEncoding) {
+                              @Value("${mspring.web.freemarker.template-path:/templates}") String templatePath, //
+                              @Value("${mspring.web.freemarker.template-encoding:UTF-8}") String templateEncoding) {
         return new FreeMarkerViewResolver(servletContext, templatePath, templateEncoding);
     }
 

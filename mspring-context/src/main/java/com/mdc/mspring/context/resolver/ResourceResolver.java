@@ -102,15 +102,13 @@ public class ResourceResolver {
     }
 
     public void scanClassNameOnClass(Class<?> clazz, List<String> classNames, Set<Class<?>> passedClass) throws IOException, URISyntaxException, ClassNotFoundException {
-        if (passedClass.contains(clazz)) {
+        if (clazz == null || passedClass.contains(clazz) || clazz.isAnnotation()) {
             return;
         } else {
             passedClass.add(clazz);
         }
-        if (clazz == null) {
-            return;
-        }
         if (clazz.getAnnotation(Configuration.class) != null) {
+            logger.info("Loading config class {}", clazz.getName());
             // config class
             if (clazz.getAnnotation(ComponentScan.class) != null) {
                 String basePackage = null;
@@ -118,11 +116,13 @@ public class ResourceResolver {
                     basePackage = clazz.getPackageName();
                 }
                 List<Resource> resources = scan(basePackage, t -> t, Set.of(".class"));
+                logger.info("Scanning resources: {} in basePackage: {}", resources.stream().map(Resource::name).collect(Collectors.toList()), basePackage);
                 for (Resource resource : resources) {
                     scanClassNameOnClass(resource.clazz(), classNames, passedClass);
                 }
             }
             if (clazz.getAnnotation(Import.class) != null) {
+                logger.info("Importing classes: {}", clazz.getAnnotation(Import.class).value());
                 // load all imported classes
                 for (Class<?> subClass : clazz.getAnnotation(Import.class).value()) {
                     scanClassNameOnClass(subClass, classNames, passedClass);

@@ -3,7 +3,6 @@ package com.mdc.mspring.mvc.servlet;
 import com.mdc.mspring.context.entity.ioc.BeanDefinition;
 import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
 import com.mdc.mspring.mvc.anno.*;
-import com.mdc.mspring.mvc.config.WebMvcConfiguration;
 import com.mdc.mspring.mvc.entity.Dispatcher;
 import com.mdc.mspring.mvc.entity.ModelAndView;
 import com.mdc.mspring.mvc.entity.Param;
@@ -12,7 +11,6 @@ import com.mdc.mspring.mvc.utils.JsonUtils;
 import com.mdc.mspring.mvc.utils.RegUtils;
 import com.mdc.mspring.mvc.utils.StringUtils;
 import com.mdc.mspring.mvc.view.ViewResolver;
-import com.mdc.mspring.mvc.view.impl.FreeMarkerViewResolver;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -53,6 +51,7 @@ public class DispatcherServlet extends HttpServlet {
         super();
         this.resourcePath = context.getResourceResolver().getProperty("${mspring.web.static-path:/static/}");
         this.appName = context.getResourceResolver().getProperty("${mspring.web.app-name:}");
+        this.viewResolver = context.getBean(ViewResolver.class);
         this.formatAppName();
         this.context = context;
         init();
@@ -71,7 +70,6 @@ public class DispatcherServlet extends HttpServlet {
 
     private void initViewResolver() {
         logger.info("Initializing ViewResolver...");
-        this.viewResolver = new FreeMarkerViewResolver(WebMvcConfiguration.getServletContext(), context.getResourceResolver().getProperty("${mspring.web.web.template-path:/templates/}"), "UTF-8");
         logger.info("ViewResolver initialized: {}", this.viewResolver);
     }
 

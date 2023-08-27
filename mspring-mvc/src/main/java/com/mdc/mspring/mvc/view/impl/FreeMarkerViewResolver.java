@@ -2,19 +2,15 @@ package com.mdc.mspring.mvc.view.impl;
 
 import com.mdc.mspring.mvc.exception.ServerErrorException;
 import com.mdc.mspring.mvc.view.ViewResolver;
-import freemarker.cache.TemplateLoader;
 import freemarker.core.HTMLOutputFormat;
 import freemarker.template.*;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @Author: ShuangShu
@@ -67,76 +63,5 @@ public class FreeMarkerViewResolver implements ViewResolver {
             throw new ServerErrorException(e.getMessage());
         }
         pw.flush();
-    }
-}
-
-/**
- * copied from freemarker.cache.WebappTemplateLoader and modified to use
- * jakarta.servlet.ServletContext.
- * <p>
- * Because it is used old javax.servlet.ServletContext.
- */
-class ServletTemplateLoader implements TemplateLoader {
-
-    final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private final ServletContext servletContext;
-    private final String subdirPath;
-
-    public ServletTemplateLoader(ServletContext servletContext, String subdirPath) {
-        Objects.requireNonNull(servletContext);
-        Objects.requireNonNull(subdirPath);
-
-        subdirPath = subdirPath.replace('\\', '/');
-        if (!subdirPath.endsWith("/")) {
-            subdirPath += "/";
-        }
-        if (!subdirPath.startsWith("/")) {
-            subdirPath = "/" + subdirPath;
-        }
-        this.subdirPath = subdirPath;
-        this.servletContext = servletContext;
-    }
-
-    @Override
-    public Object findTemplateSource(String name) throws IOException {
-        String fullPath = subdirPath + name;
-
-        try {
-            String realPath = servletContext.getRealPath(fullPath);
-            if (realPath != null) {
-                File file = new File(realPath);
-                if (file.canRead() && file.isFile()) {
-                    return file;
-                }
-            }
-        } catch (SecurityException e) {
-            ;// ignore
-        }
-        return null;
-    }
-
-    @Override
-    public long getLastModified(Object templateSource) {
-        if (templateSource instanceof File) {
-            return ((File) templateSource).lastModified();
-        }
-        return 0;
-    }
-
-    @Override
-    public Reader getReader(Object templateSource, String encoding) throws IOException {
-        if (templateSource instanceof File) {
-            return new InputStreamReader(new FileInputStream((File) templateSource), encoding);
-        }
-        throw new IOException("File not found.");
-    }
-
-    @Override
-    public void closeTemplateSource(Object templateSource) throws IOException {
-    }
-
-    public Boolean getURLConnectionUsesCaches() {
-        return Boolean.FALSE;
     }
 }
