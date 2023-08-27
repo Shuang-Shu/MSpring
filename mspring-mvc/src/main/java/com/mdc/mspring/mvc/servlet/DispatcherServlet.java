@@ -1,9 +1,7 @@
 package com.mdc.mspring.mvc.servlet;
 
-import com.mdc.mspring.context.anno.Aware;
 import com.mdc.mspring.context.entity.ioc.BeanDefinition;
 import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
-import com.mdc.mspring.context.factory.Context;
 import com.mdc.mspring.mvc.anno.*;
 import com.mdc.mspring.mvc.config.WebMvcConfiguration;
 import com.mdc.mspring.mvc.entity.Dispatcher;
@@ -13,7 +11,6 @@ import com.mdc.mspring.mvc.exception.ServletParamParseException;
 import com.mdc.mspring.mvc.utils.JsonUtils;
 import com.mdc.mspring.mvc.utils.RegUtils;
 import com.mdc.mspring.mvc.utils.StringUtils;
-import com.mdc.mspring.mvc.utils.UrlUtils;
 import com.mdc.mspring.mvc.view.ViewResolver;
 import com.mdc.mspring.mvc.view.impl.FreeMarkerViewResolver;
 import jakarta.servlet.ServletContext;
@@ -22,6 +19,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,35 +40,48 @@ import java.util.regex.Pattern;
  * @Date: 2023/08/21/18:43
  * @Description:
  */
-public class DispatcherServlet extends HttpServlet implements Aware {
+public class DispatcherServlet extends HttpServlet {
+    private final static Logger logger = LoggerFactory.getLogger(DispatcherServlet.class);
     final List<Dispatcher> dispatcherList = new ArrayList<>();
 
     private ConfigurableApplicationContext context;
     private String resourcePath;
     private ViewResolver viewResolver;
-
-    public DispatcherServlet() {
-        super();
-        init();
-    }
+    private String appName = "";
 
     public DispatcherServlet(ConfigurableApplicationContext context) {
         super();
         this.resourcePath = context.getResourceResolver().getProperty("${mspring.web.static-path:/static/}");
+        this.appName = context.getResourceResolver().getProperty("${mspring.web.app-name:}");
+        this.formatAppName();
         this.context = context;
         init();
     }
 
+    private void formatAppName() {
+        if (!com.mdc.mspring.context.utils.StringUtils.isEmpty(appName)) {
+            if (!appName.startsWith("/")) {
+                appName = "/" + appName;
+            }
+            if (appName.endsWith("/")) {
+                appName = appName.substring(0, appName.length() - 1);
+            }
+        }
+    }
+
     private void initViewResolver() {
+        logger.info("Initializing ViewResolver...");
         this.viewResolver = new FreeMarkerViewResolver(WebMvcConfiguration.getServletContext(), context.getResourceResolver().getProperty("${mspring.web.web.template-path:/templates/}"), "UTF-8");
+        logger.info("ViewResolver initialized: {}", this.viewResolver);
     }
 
     @Override
     public void init() {
+        logger.info("DispatcherServlet initializing...");
         List<BeanDefinition> controllerDefinitions = context.getBeanDefinitionsByAnnotation(Controller.class);
+        logger.info("Found {} controller definitions: {}", controllerDefinitions.size(), controllerDefinitions);
         controllerDefinitions.stream().forEach(
                 bd -> {
-                    // TODO
                     // 1 获取controller属性：isRest，baseUrlPattern，controller
                     boolean isRest = bd.getDeclaredClass().isAnnotationPresent(RestController.class);
                     StringBuilder baseSb = new StringBuilder();
@@ -101,12 +113,13 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                         }
                         Param[] params = Param.parse(method);
                         String urlPattern = baseSb.toString() + sb.toString();
+                        logger.info("Building dispatcher: {} for url: {}", method.getName(), appName + urlPattern);
                         Dispatcher dispatcher = Dispatcher.builder()
                                 .isRest(isRest)
                                 .isResponseBody(isResponseBody)
                                 .isVoid(isVoid)
-                                .urlPatternStr(urlPattern)
-                                .urlPattern(Pattern.compile(RegUtils.formatPatternString(urlPattern)))
+                                .urlPatternStr(appName + urlPattern)
+                                .urlPattern(Pattern.compile(RegUtils.formatPatternString(appName + urlPattern)))
                                 .controller(context.getBean(bd.getBeanName()))
                                 .handlerMethod(method)
                                 .methodParameters(params)
@@ -115,6 +128,7 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                     }
                 });
         initViewResolver();
+        logger.info("All dispatchers initialized: {}", dispatcherList);
     }
 
     @Override
@@ -125,9 +139,10 @@ public class DispatcherServlet extends HttpServlet implements Aware {
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        logger.info("Request: {} {}", req.getMethod(), req.getRequestURI());
         // 判断req类型
         if (req.getMethod().equals("GET")) {
-            if (req.getRequestURI().startsWith(resourcePath)) {
+            if (req.getRequestURI().startsWith(appName + resourcePath)) {
                 doResource(req.getRequestURI(), req, resp);
                 return;
             } else {
@@ -150,6 +165,8 @@ public class DispatcherServlet extends HttpServlet implements Aware {
 
     // 用于获取资源
     private void doResource(String url, HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        // remove appName
+        url = url.substring(appName.length());
         ServletContext ctx = req.getServletContext();
         try (InputStream input = ctx.getResourceAsStream(url)) {
             if (input == null) {
@@ -171,7 +188,7 @@ public class DispatcherServlet extends HttpServlet implements Aware {
     }
 
     private void doService(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String url = UrlUtils.getRelativeUrl(req.getRequestURL().toString());
+        String url = req.getRequestURI();
         for (Dispatcher dispatcher : this.dispatcherList) {
             // 如果匹配到url
             if (dispatcher.getUrlPattern().matcher(url).matches()) {
@@ -191,7 +208,6 @@ public class DispatcherServlet extends HttpServlet implements Aware {
                     resp.sendError(500, "server error");
                     throw new RuntimeException(e);
                 }
-                // TODO 处理返回值（目前仅支持String和void的返回值）
                 postResponseProcess(dispatcher.isRest(), dispatcher.isResponseBody(), dispatcher.isVoid(), result, req, resp);
                 return;
             }
@@ -338,27 +354,5 @@ public class DispatcherServlet extends HttpServlet implements Aware {
         String bodyStr = new String(bodyData, Charset.forName("UTF-8"));
         result.putAll(JsonUtils.parseMap(bodyStr));
         return result;
-    }
-
-    private Map<String, Object> parseAllParams(Dispatcher dispatcher, HttpServletRequest req)
-            throws IOException {
-        String url = UrlUtils.getRelativeUrl(req.getRequestURL().toString());
-        Map<String, Object> allParams = new HashMap<>();
-        // 1 获取header、body和url中的所有参数
-        // 1.1 获取url中的所有参数
-        allParams.putAll(parseUrl(dispatcher, req));
-        // 1.2 获取header中的所有参数
-        allParams.putAll(parseHeader(req));
-        // 1.3 解析body中的所有参数
-        if (req.getMethod().equals("POST")) {
-            // 以Json串形式获取body
-            allParams.putAll(parseBody(req));
-        }
-        return allParams;
-    }
-
-    @Override
-    public void setContext(Context context) {
-        this.context = (ConfigurableApplicationContext) context;
     }
 }

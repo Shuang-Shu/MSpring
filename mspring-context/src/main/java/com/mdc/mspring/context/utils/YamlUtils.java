@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class YamlUtils {
-    public static Map<String, String> parseYaml(File f) throws FileNotFoundException {
+    public static Map<String, Object> parseYaml(File f) throws FileNotFoundException {
         Yaml yaml = new Yaml();
         return yaml.load(new FileInputStream(f));
     }

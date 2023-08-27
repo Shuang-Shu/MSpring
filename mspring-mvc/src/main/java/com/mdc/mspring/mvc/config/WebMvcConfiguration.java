@@ -6,6 +6,8 @@ import com.mdc.mspring.mvc.view.impl.FreeMarkerViewResolver;
 
 import jakarta.servlet.ServletContext;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -18,6 +20,8 @@ import java.util.Objects;
 @Configuration
 @ComponentScan("com.mdc.mspring.mvc")
 public class WebMvcConfiguration {
+    private final static Logger logger = LoggerFactory.getLogger(WebMvcConfiguration.class);
+
     @Getter
     private static ServletContext servletContext = null;
 
@@ -35,6 +39,7 @@ public class WebMvcConfiguration {
 
     @Bean
     ServletContext servletContext() {
+        logger.info("Setting servletContext...: {}", servletContext);
         return Objects.requireNonNull(servletContext, "ServletContext is not set.");
     }
 }

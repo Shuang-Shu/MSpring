@@ -1,15 +1,15 @@
 package com.mdc.mspring.jdbc.config;
 
-import com.mdc.mspring.context.anno.Autowired;
-import com.mdc.mspring.context.anno.Bean;
-import com.mdc.mspring.context.anno.Configuration;
-import com.mdc.mspring.context.anno.Value;
+import com.mdc.mspring.aop.config.AopConfiguration;
+import com.mdc.mspring.context.anno.*;
 import com.mdc.mspring.jdbc.processor.TransactionalBeanPostProcessor;
 import com.mdc.mspring.jdbc.template.JdbcTemplate;
 import com.mdc.mspring.jdbc.tx.PlatformTransactionManager;
 import com.mdc.mspring.jdbc.tx.impl.DataSourceTransactionManager;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 
@@ -20,7 +20,11 @@ import javax.sql.DataSource;
  * @Description:
  */
 @Configuration
+@Import(AopConfiguration.class)
+@ComponentScan("com.mdc.mspring.jdbc")
 public class JdbcConfiguration {
+    private final Logger logger = LoggerFactory.getLogger(JdbcConfiguration.class);
+
     @Bean(value = "dataSource", destroyMethod = "close")
     DataSource dataSource(
             @Value("${mspring.datasource.url}") String url,
@@ -42,6 +46,8 @@ public class JdbcConfiguration {
         config.setMaximumPoolSize(maximumPoolSize);
         config.setMinimumIdle(minimumPoolSize);
         config.setConnectionTimeout(connTimeout);
+        logger.info("Loading datasource config: url={}, username={}, password={}, driver={}, maximumPoolSize={}, minimumPoolSize={}, connTimeout={}",
+                url, username, password, driver, maximumPoolSize, minimumPoolSize, connTimeout);
         return new HikariDataSource(config);
     }
 

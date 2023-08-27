@@ -23,8 +23,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-public class MvcTest {
+public class MvcWithAppNameTest {
     AnnotationConfigApplicationContext context;
     DispatcherServlet dispatcherServlet;
     MockServletContext ctx;
@@ -61,7 +62,7 @@ public class MvcTest {
 
     @Test
     public void getHello() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/hello/Bob", null, null);
+        var req = createMockRequest("GET", "/webapp/hello/Bob", null, null);
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
@@ -70,7 +71,7 @@ public class MvcTest {
 
     @Test
     public void getApiHello() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/api/hello/Bob", null, null);
+        var req = createMockRequest("GET", "/webapp/api/hello/Bob", null, null);
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
@@ -80,7 +81,7 @@ public class MvcTest {
 
     @Test
     public void getGreeting() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/greeting", null, Map.of("name", "Bob"));
+        var req = createMockRequest("GET", "/webapp/greeting", null, Map.of("name", "Bob"));
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
@@ -89,7 +90,7 @@ public class MvcTest {
 
     @Test
     public void getApiGreeting() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/api/greeting", null, Map.of("name", "Bob"));
+        var req = createMockRequest("GET", "/webapp/api/greeting", null, Map.of("name", "Bob"));
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
@@ -99,7 +100,7 @@ public class MvcTest {
 
     @Test
     public void getGreeting2() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/greeting", null, Map.of("action", "Morning", "name", "Bob"));
+        var req = createMockRequest("GET", "/webapp/greeting", null, Map.of("action", "Morning", "name", "Bob"));
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
@@ -108,7 +109,7 @@ public class MvcTest {
 
     @Test
     public void getGreeting3() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/greeting", null, Map.of("action", "Morning"));
+        var req = createMockRequest("GET", "/webapp/greeting", null, Map.of("action", "Morning"));
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(400, resp.getStatus());
@@ -116,7 +117,7 @@ public class MvcTest {
 
     @Test
     public void getDownload() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/static/test.txt", null,
+        var req = createMockRequest("GET", "/webapp/static/test.txt", null,
                 Map.of("hasChecksum", "true", "length", "8", "time", "123.4", "md5",
                         "aee9e38cb4d40ec2794542567539b4c8"));
         var resp = createMockResponse();
@@ -127,7 +128,7 @@ public class MvcTest {
 
     @Test
     public void getApiDownload() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/api/download/server.jar", null,
+        var req = createMockRequest("GET", "/webapp/api/download/server.jar", null,
                 Map.of("hasChecksum", "true", "length", "8", "time", "123.4", "md5",
                         "aee9e38cb4d40ec2794542567539b4c8"));
         var resp = createMockResponse();
@@ -141,7 +142,7 @@ public class MvcTest {
 
     @Test
     public void getDownloadPart() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/download-part", null, null);
+        var req = createMockRequest("GET", "/webapp/download-part", null, null);
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(206, resp.getStatus());
@@ -151,7 +152,7 @@ public class MvcTest {
 
     @Test
     public void getApiDownloadPart() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/api/download-part", null,
+        var req = createMockRequest("GET", "/webapp/api/download-part", null,
                 Map.of("file", "server.jar", "hasChecksum", "true", "length", "8", "time", "123.4", "md5",
                         "aee9e38cb4d40ec2794542567539b4c8"));
         var resp = createMockResponse();
@@ -165,7 +166,7 @@ public class MvcTest {
 
     @Test
     public void getLogin() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/login", null, null);
+        var req = createMockRequest("GET", "/webapp/login", null, null);
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(302, resp.getStatus());
@@ -174,7 +175,7 @@ public class MvcTest {
 
     @Test
     public void getProduct() throws ServletException, IOException {
-        var req = createMockRequest("GET", "/product/123", null, Map.of("name", "Bob"));
+        var req = createMockRequest("GET", "/webapp/product/123", null, Map.of("name", "Bob"));
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
@@ -184,7 +185,7 @@ public class MvcTest {
 
     @Test
     public void postSignin() throws ServletException, IOException {
-        var req = createMockRequest("POST", "/signin", null, Map.of("name", "Bob", "password", "hello123"));
+        var req = createMockRequest("POST", "/webapp/signin", null, Map.of("name", "Bob", "password", "hello123"));
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(302, resp.getStatus());
@@ -193,7 +194,7 @@ public class MvcTest {
 
     @Test
     public void postRegister() throws ServletException, IOException {
-        var req = createMockRequest("POST", "/register", null, Map.of("name", "Bob", "password", "hello123"));
+        var req = createMockRequest("POST", "/webapp/register", null, Map.of("name", "Bob", "password", "hello123"));
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
@@ -205,7 +206,7 @@ public class MvcTest {
         var signin = new SigninObj();
         signin.name = "Bob";
         signin.password = "hello123";
-        var req = createMockRequest("POST", "/api/register", signin, null);
+        var req = createMockRequest("POST", "/webapp/api/register", signin, null);
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(200, resp.getStatus());
@@ -215,7 +216,7 @@ public class MvcTest {
 
     @Test
     public void postSignout() throws ServletException, IOException {
-        var req = createMockRequest("POST", "/signout", null, Map.of("name", "Bob"));
+        var req = createMockRequest("POST", "/webapp/signout", null, Map.of("name", "Bob"));
         var resp = createMockResponse();
         this.dispatcherServlet.service(req, resp);
         assertEquals(302, resp.getStatus());

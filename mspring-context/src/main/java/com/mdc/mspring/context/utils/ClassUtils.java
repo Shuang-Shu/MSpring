@@ -1,5 +1,6 @@
 package com.mdc.mspring.context.utils;
 
+import com.mdc.mspring.context.anno.ComponentScan;
 import com.mdc.mspring.context.anno.Order;
 import com.mdc.mspring.context.anno.Primary;
 import com.mdc.mspring.context.exception.BeanDefinitionException;
@@ -29,7 +30,7 @@ public class ClassUtils {
      */
     @SuppressWarnings("unchecked")
     public static Annotation getAnnotation(Class<?> clazz, Class<? extends Annotation> annoClass,
-            Set<Class<Annotation>> annotationSet) {
+                                           Set<Class<Annotation>> annotationSet) {
         if (annotationSet.contains(clazz)) {
             return null;
         } else {
@@ -76,7 +77,7 @@ public class ClassUtils {
     }
 
     public static Annotation[] getTargetAnnotaionOnConstructorArgs(Constructor<?> constructor,
-            Set<Class<? extends Annotation>> annotationClassesSet) {
+                                                                   Set<Class<? extends Annotation>> annotationClassesSet) {
         var annotations = constructor.getParameterAnnotations();
         Annotation[] result = new Annotation[annotations.length];
         getTargetAnnotation(annotations, result, annotationClassesSet);
@@ -84,7 +85,7 @@ public class ClassUtils {
     }
 
     public static Annotation[] getTargetAnnotaionOnMethodArgs(Method method,
-            Set<Class<? extends Annotation>> annotationClassesSet) {
+                                                              Set<Class<? extends Annotation>> annotationClassesSet) {
         var annotations = method.getParameterAnnotations();
         Annotation[] result = new Annotation[annotations.length];
         getTargetAnnotation(annotations, result, annotationClassesSet);
@@ -92,7 +93,7 @@ public class ClassUtils {
     }
 
     private static void getTargetAnnotation(Annotation[][] annotations, Annotation[] target,
-            Set<Class<? extends Annotation>> annotationClassesSet) {
+                                            Set<Class<? extends Annotation>> annotationClassesSet) {
         for (int i = 0; i < annotations.length; i++) {
             for (Annotation annotation : annotations[i]) {
                 if (annotationClassesSet.contains(annotation.annotationType())) {
@@ -147,5 +148,17 @@ public class ClassUtils {
             return null;
         targetMethod.setAccessible(true);
         return (T) targetMethod.invoke(object, args);
+    }
+
+    public static String getBasePackage(Class<?> clazz) {
+        if (clazz.getAnnotation(ComponentScan.class) != null) {
+            String basePackage = null;
+            if (StringUtils.isEmpty(basePackage = clazz.getAnnotation(ComponentScan.class).value())) {
+                basePackage = clazz.getPackage().getName();
+            }
+            return basePackage;
+        } else {
+            return clazz.getPackage().getName();
+        }
     }
 }

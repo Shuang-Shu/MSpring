@@ -1,20 +1,24 @@
 package com.mdc.mspring.context.factory.impl;
 
 import com.mdc.mspring.context.anno.*;
-import com.mdc.mspring.context.entity.ioc.BeanPostProcessor;
-import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
-import com.mdc.mspring.context.entity.Resource;
 import com.mdc.mspring.context.entity.ioc.BeanDefinition;
+import com.mdc.mspring.context.entity.ioc.BeanPostProcessor;
 import com.mdc.mspring.context.exception.BeanCreateException;
 import com.mdc.mspring.context.exception.DuplicatedBeanNameException;
 import com.mdc.mspring.context.exception.NoUniqueBeanDefinitionException;
+import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
 import com.mdc.mspring.context.resolver.ResourceResolver;
 import com.mdc.mspring.context.utils.ClassUtils;
 import com.mdc.mspring.context.utils.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,6 +30,8 @@ import java.util.stream.Collectors;
  * @Description:
  */
 public class AnnotationConfigApplicationContext implements ConfigurableApplicationContext {
+    private final static Logger logger = LoggerFactory.getLogger(AnnotationConfigApplicationContext.class);
+
     private record Result(Method factoryMethod, Object[] args) {
     }
 
@@ -38,26 +44,16 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     public AnnotationConfigApplicationContext(Class<?> configClass)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException,
             ClassNotFoundException, IOException, URISyntaxException {
-        this(configClass, new ResourceResolver(getScanClass(configClass)));
+        this(configClass, new ResourceResolver());
     }
 
     public AnnotationConfigApplicationContext(Class<?> confgClass, ResourceResolver resourceResolver)
             throws IOException, URISyntaxException, NoSuchMethodException,
             InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
         this.resourceResolver = resourceResolver;
-        // 1 get class names in scanPackage
-        String scanPackage = getScanClass(confgClass);
-        List<String> classNames = new ArrayList<>(resourceResolver
-                .scan(scanPackage, Resource::name, ResourceResolver.CLASS_SUFFIX, -1).stream().map(n -> {
-                    n = n.replace('/', '.');
-                    return n.substring(0, n.length() - 6);
-                }).filter(n -> {
-                    return !ClassUtils.isAnnotation(n);
-                }).toList());
-        // 1.2 get all bean names defined by @Import
-        if (confgClass.getAnnotation(Import.class) != null)
-            classNames
-                    .addAll(Arrays.stream(confgClass.getAnnotation(Import.class).value()).map(Class::getName).toList());
+        // recursively scan at basePackage
+        List<String> classNames = new ArrayList<>();
+        resourceResolver.scanClassNameOnClass(confgClass, classNames, new HashSet<>());
         // 2 create BeanDefinitions
         this.beans = createBeanDefinitions(classNames);
         // 3 get all beanPostPocessors
@@ -70,6 +66,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
         injectWeakDependencies();
         // 7 invoke initial methods for all (origin) beans
         invokeInitialMethods();
+        logger.info("Loaded all beans in IoC container");
     }
 
     private void invokeInitialMethods()

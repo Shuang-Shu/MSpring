@@ -7,5 +7,5 @@ package com.mdc.mspring.context.entity;
  * @Email: 1103725164@qq.com
  * @Description: Resource presents a resource file
  */
-public record Resource(String path, String name) {
+public record Resource(String path, String name, Class<?> clazz) {
 }
