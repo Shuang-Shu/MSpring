@@ -1,11 +1,11 @@
-package com.mdc.mspring.mvc.listener;
+package com.mdc.mspring.boot.initializer;
 
 import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
 import com.mdc.mspring.context.factory.impl.AnnotationConfigApplicationContext;
 import com.mdc.mspring.mvc.config.WebMvcConfiguration;
 import com.mdc.mspring.mvc.servlet.DispatcherServlet;
-import jakarta.servlet.ServletContextEvent;
-import jakarta.servlet.ServletContextListener;
+import jakarta.servlet.ServletContainerInitializer;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,24 +13,24 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
+import java.util.Set;
 
-/**
- * @Author: ShuangShu
- * @Email: 1103725164@qq.com
- * @Date: 2023/08/21/18:41
- * @Description:
- */
-public class ContextLoaderListener implements ServletContextListener {
-    private static final Logger logger = LoggerFactory.getLogger(ContextLoaderListener.class);
+public class ContextLoaderInitializer implements ServletContainerInitializer {
+    private static final Logger logger = LoggerFactory.getLogger(ContextLoaderInitializer.class);
+
+    private Class<?> configClass;
+
+    public ContextLoaderInitializer(Class<?> configClass) {
+        this.configClass = configClass;
+    }
 
     @Override
-    public void contextInitialized(ServletContextEvent sce) {
-        logger.info("ContextLoaderListener initializing...");
-        // 创建IoC容器:
+    public void onStartup(Set<Class<?>> c, ServletContext ctx) throws ServletException {
+        logger.info("ContextLoaderInitializer initializing...");
         ConfigurableApplicationContext applicationContext = null;
-        WebMvcConfiguration.setServletContext(sce.getServletContext());
+        WebMvcConfiguration.setServletContext(ctx);
         try {
-            applicationContext = createApplicationContext(sce);
+            applicationContext = createApplicationContext(ctx);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException
                  | ClassNotFoundException | IOException | URISyntaxException e) {
             logger.error(e.getMessage());
@@ -39,7 +39,7 @@ public class ContextLoaderListener implements ServletContextListener {
         // 实例化DispatcherServlet:
         var dispatcherServlet = new DispatcherServlet(applicationContext);
         // 获取servletContext
-        var servletContext = sce.getServletContext();
+        var servletContext = ctx;
         // 注册DispatcherServlet:
         var dispatcherReg = servletContext.addServlet("dispatcherServlet", dispatcherServlet);
         logger.info("DispatcherServlet: {} registered with name: {}", dispatcherServlet, "dispatcherServlet");
@@ -49,22 +49,13 @@ public class ContextLoaderListener implements ServletContextListener {
         servletContext.setAttribute("applicationContext", applicationContext);
     }
 
-    private ConfigurableApplicationContext createApplicationContext(ServletContextEvent sce)
+    private ConfigurableApplicationContext createApplicationContext(ServletContext ctx)
             throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException,
             InstantiationException, IllegalAccessException, ClassNotFoundException {
         logger.info("Initializing AnnotationConfigApplicationContext...");
         // 读取配置类:
-        String configClassName = sce.getServletContext().getInitParameter("configuration");
-        Class<?> configClass = null;
-        try {
-            configClass = Class.forName(configClassName);
-        } catch (ClassNotFoundException e) {
-            try {
-                throw new ServletException("Could not load class from init param 'configuration': " + configClassName);
-            } catch (ServletException ex) {
-                logger.error(ex.getMessage());
-            }
-        }
+        String configClassName = ctx.getInitParameter("configuration");
+        Class<?> configClass = this.configClass;
         return new AnnotationConfigApplicationContext(configClass);
     }
 }

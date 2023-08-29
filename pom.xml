@@ -15,6 +15,7 @@
         <module>mspring-jdbc</module>
         <module>mspring-mvc</module>
         <module>mspring-demo-app</module>
+        <module>mspring-boot</module>
     </modules>
 
     <properties>
@@ -35,6 +36,7 @@
         <jackson.databind.version>2.9.6</jackson.databind.version>
         <log4j2.version>2.9.1</log4j2.version>
         <slf4j.version>1.7.25</slf4j.version>
+        <tomcat-embed.version>10.1.13</tomcat-embed.version>
     </properties>
 
     <dependencies>
@@ -151,6 +153,12 @@
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-web</artifactId>
                 <version>${log4j2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>${tomcat-embed.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

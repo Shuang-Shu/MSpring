@@ -50,9 +50,9 @@ public class DispatcherServlet extends HttpServlet {
     public DispatcherServlet(ConfigurableApplicationContext context) {
         super();
         this.resourcePath = context.getResourceResolver().getProperty("${mspring.web.static-path:/static/}");
-        this.appName = context.getResourceResolver().getProperty("${mspring.web.app-name:}");
-        this.viewResolver = context.getBean(ViewResolver.class);
+        this.appName = context.getResourceResolver().getProperty("${server.servlet.context-path:}");
         this.formatAppName();
+        this.viewResolver = context.getBean(ViewResolver.class);
         this.context = context;
         init();
     }
