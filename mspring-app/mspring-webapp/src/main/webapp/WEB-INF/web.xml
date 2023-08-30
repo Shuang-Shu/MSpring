@@ -1,0 +1,20 @@
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+  <context-param>
+    <!-- 配置类完整类名 -->
+    <param-name>configuration</param-name>
+    <param-value>com.mdc.mspring.webapp.config.WebAppConfig</param-value>
+  </context-param>
+
+  <context-param>
+    <param-name>appName</param-name>
+    <param-value>webapp</param-value>
+  </context-param>
+
+  <listener>
+    <!-- 配置类完整类名 -->
+    <listener-class>com.mdc.mspring.mvc.listener.ContextLoaderListener</listener-class>
+  </listener>
+
+</web-app>

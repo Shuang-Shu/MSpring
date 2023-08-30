@@ -1,6 +1,5 @@
 package com.mdc.mspring.mvc.entity;
 
-import com.mdc.mspring.context.anno.Nullable;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 
@@ -31,11 +30,6 @@ public class ModelAndView {
         if (model != null) {
             addModel(model);
         }
-    }
-
-    public ModelAndView(String viewName, String modelName, Object modelObject) {
-        this(viewName, HttpServletResponse.SC_OK, null);
-        addModel(modelName, modelObject);
     }
 
     public void addModel(Map<String, Object> map) {

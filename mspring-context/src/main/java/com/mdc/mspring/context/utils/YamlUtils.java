@@ -16,6 +16,9 @@ public class YamlUtils {
 
     public static Map<String, String> flattenYaml(Map<String, Object> yamlMap) {
         Map<String, String> result = new HashMap<>();
+        if (yamlMap == null) {
+            return result;
+        }
         for (String key : yamlMap.keySet()) {
             Object value = yamlMap.get(key);
             if (value instanceof Map) {
