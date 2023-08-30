@@ -54,8 +54,6 @@ public class ContextLoaderInitializer implements ServletContainerInitializer {
             InstantiationException, IllegalAccessException, ClassNotFoundException {
         logger.info("Initializing AnnotationConfigApplicationContext...");
         // 读取配置类:
-        String configClassName = ctx.getInitParameter("configuration");
-        Class<?> configClass = this.configClass;
         return new AnnotationConfigApplicationContext(configClass);
     }
 }
