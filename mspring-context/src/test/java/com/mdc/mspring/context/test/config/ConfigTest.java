@@ -5,6 +5,7 @@ import com.mdc.mspring.context.factory.support.BeanFactory;
 import com.mdc.mspring.context.test.config.bean.Bean1;
 import com.mdc.mspring.context.test.config.bean2.Bean2;
 import com.mdc.mspring.context.test.config.bean3.Bean3;
+import com.mdc.mspring.context.test.config.bean4.Bean4;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,13 +26,16 @@ public class ConfigTest {
         Bean1 bean1 = (Bean1) beanFactory.getBean("bean1");
         Bean2 bean2 = (Bean2) beanFactory.getBean("bean2");
         Bean3 bean3 = (Bean3) beanFactory.getBean("bean3");
+        Bean4 bean4 = (Bean4) beanFactory.getBean("bean4");
 
         Assert.assertNotNull(bean1);
         Assert.assertNotNull(bean2);
         Assert.assertNotNull(bean3);
+        Assert.assertNotNull(bean4);
 
         Assert.assertEquals("bean1.test", bean1.name);
         Assert.assertEquals("bean2.test", bean2.name);
         Assert.assertEquals("bean3.test", bean3.name);
+        Assert.assertEquals("bean4.test", bean4.name);
     }
 }

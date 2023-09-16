@@ -7,8 +7,14 @@ import com.mdc.mspring.context.factory.support.BeanDefinitionRegistry;
 import com.mdc.mspring.context.factory.support.PropertyRegistry;
 import com.mdc.mspring.context.io.Resource;
 import com.mdc.mspring.context.utils.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.time.*;
 import java.util.*;
@@ -21,6 +27,7 @@ import java.util.function.Function;
  * @date 2023/9/15 14:02
  */
 public class ClassPathResourceResolver {
+    private final Logger logger = LoggerFactory.getLogger(ClassPathResourceResolver.class);
     private final BeanDefinitionRegistry registry;
     private final PropertyRegistry propertyRegistry;
     private final Set<String> scannedPackages = new HashSet<>();
@@ -52,7 +59,7 @@ public class ClassPathResourceResolver {
         this.propertyRegistry = propertyRegistry;
     }
 
-    public void scanOn(Class<?> configClass) throws IOException, URISyntaxException, ClassNotFoundException {
+    public void scanOn(Class<?> configClass) throws IOException, URISyntaxException, ClassNotFoundException, NoSuchMethodException {
         if (scannedClasses.contains(configClass)) {
             return;
         } else {
@@ -77,7 +84,7 @@ public class ClassPathResourceResolver {
         }
     }
 
-    public void scanOn(String scanPackage, Class<?> configClass) throws IOException, URISyntaxException, ClassNotFoundException {
+    public void scanOn(String scanPackage, Class<?> configClass) throws IOException, URISyntaxException, ClassNotFoundException, NoSuchMethodException {
         // avoid duplicate scanning
         if (scannedPackages.contains(scanPackage)) {
             return;
@@ -87,45 +94,78 @@ public class ClassPathResourceResolver {
         scanPackage = scanPackage.replace(".", "/");
         final String scanPackagePath = scanPackage;
         List<Resource> scannedResources = new ArrayList<>(ResourceUtils.getAllResources(scanPackagePath));
-        final List<Class<?>> candidateConfig = new ArrayList<>();
+        final Set<Class<?>> candidateConfig = new HashSet<>();
         if (configClass != null) {
             candidateConfig.add(configClass);
         }
         scannedResources.stream().filter(r -> r.getType() == ResourceType.CLASS).map(
-                r -> {
-                    String className = UrlUtils.convertToClassName(r.getName(), scanPackagePath);
-                    Class<?> clazz = null;
-                    try {
-                        clazz = Class.forName(className);
-                    } catch (ClassNotFoundException e) {
-                        throw new RuntimeException(e);
+                        r -> {
+                            String className = UrlUtils.convertToClassName(r.getName(), scanPackagePath);
+                            Class<?> clazz = null;
+                            try {
+                                clazz = Class.forName(className);
+                            } catch (ClassNotFoundException e) {
+                                throw new RuntimeException(e);
+                            }
+                            return clazz;
+                        }
+                ).filter(rc -> !rc.isAnnotation())
+                .filter(rc -> ClassUtils.getAnnotation(rc, Component.class) != null).map(
+                        rc -> {
+                            try {
+                                return buildBeanDefinition(rc);
+                            } catch (NoSuchMethodException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                ).filter(Objects::nonNull).forEach(bd -> {
+                    registry.registerBeanDefinition(bd.getBeanName(), bd);
+                    if (ClassUtils.getAnnotation(bd.getDeclaredClass(), Configuration.class) != null) {
+                        candidateConfig.add(bd.getDeclaredClass());
                     }
-                    return clazz;
-                }
-        ).filter(rc -> ClassUtils.getAnnotation(rc, Component.class) != null).map(
-                rc -> {
-                    try {
-                        return buildBeanDefinition(rc);
-                    } catch (NoSuchMethodException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-        ).filter(Objects::nonNull).forEach(bd -> {
-            registry.registerBeanDefinition(bd.getBeanName(), bd);
-            if (ClassUtils.getAnnotation(bd.getDeclaredClass(), Configuration.class) != null) {
-                candidateConfig.add(bd.getDeclaredClass());
-            }
-        });
+                });
         // 2 deal with configuration bean
         for (Class<?> aClass : candidateConfig) {
             handleCandidateConfigs(aClass);
         }
     }
 
-    private void handleCandidateConfigs(Class<?> clazz) throws IOException, URISyntaxException, ClassNotFoundException {
-        Configuration configuration = null;
-        if ((configuration = ClassUtils.getAnnotation(clazz, Configuration.class)) == null) {
+    private void handleCandidateConfigs(Class<?> clazz) throws IOException, URISyntaxException, ClassNotFoundException, NoSuchMethodException {
+        if (ClassUtils.getAnnotation(clazz, Configuration.class) == null) {
             throw new RuntimeException("Class " + clazz.getName() + " is not a configuration class.");
+        }
+        BeanDefinition configDefinition = buildBeanDefinition(clazz);
+        registry.registerBeanDefinition(configDefinition.getBeanName(), configDefinition);
+        // 0 load config bean
+        for (var method : clazz.getDeclaredMethods()) {
+            if (method.getAnnotation(Bean.class) != null) {
+                method.setAccessible(true);
+                Bean bean = method.getAnnotation(Bean.class);
+                String beanName = bean.value();
+                if (StringUtils.isEmpty(beanName)) {
+                    beanName = StringUtils.getFirstCharLowerCase(method.getReturnType().getSimpleName());
+                }
+                Method initialMethod = null, destroyMethod = null;
+                try {
+                    if (!StringUtils.isEmpty(bean.initMethod()))
+                        initialMethod = clazz.getMethod(bean.initMethod());
+                } catch (NoSuchMethodException e) {
+                    logger.error("No such method: {}", bean.initMethod());
+                    throw new RuntimeException(e);
+                }
+                try {
+                    if (!StringUtils.isEmpty(bean.destroyMethod()))
+                        destroyMethod = clazz.getMethod(bean.destroyMethod());
+                } catch (NoSuchMethodException e) {
+                    logger.error("No such method: {}", bean.destroyMethod());
+                    throw new RuntimeException(e);
+                }
+                BeanDefinition beanDefinition = BeanDefinition.builder().beanName(beanName)
+                        .declaredClass(method.getReturnType()).initMethod(initialMethod).destroyMethod(destroyMethod)
+                        .order(ClassUtils.getOrder(method))
+                        .primary(ClassUtils.getPrimary(method)).factoryMethod(method).factoryName(clazz.getName()).build();
+                registry.registerBeanDefinition(beanDefinition.getBeanName(), beanDefinition);
+            }
         }
         // 1 check other path
         ComponentScan componentScan = null;
