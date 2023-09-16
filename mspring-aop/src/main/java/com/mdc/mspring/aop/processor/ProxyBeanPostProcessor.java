@@ -27,7 +27,7 @@ public class ProxyBeanPostProcessor<A extends Annotation> extends BeanPostProces
     private final Class<A> classA;
 
     public ProxyBeanPostProcessor() {
-        this.classA = getParameterizedType();
+        classA = getParameterizedType();
     }
 
     @Override
@@ -39,14 +39,14 @@ public class ProxyBeanPostProcessor<A extends Annotation> extends BeanPostProces
             }
             resolver = (ProxyResolver) resolverDefinition.getInstance();
         }
-        Annotation annotation = bean.getClass().getAnnotation(this.classA);
+        Annotation annotation = bean.getClass().getAnnotation(classA);
         Object proxy = bean;
         String handlerName;
         if (annotation != null) {
             try {
                 handlerName = (String) annotation.annotationType().getMethod("value").invoke(annotation);
             } catch (ReflectiveOperationException e) {
-                throw new AopException(String.format("@%s must have value() returned String type.", this.classA.getSimpleName()), e);
+                throw new AopException(String.format("@%s must have value() returned String type.", classA.getSimpleName()), e);
             }
             InvocationHandler invocationHandler = beanFactory.getBean(handlerName, InvocationHandler.class);
             if (invocationHandler == null) {

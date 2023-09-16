@@ -146,20 +146,6 @@ public class ClassPathResourceResolver {
                     beanName = StringUtils.getFirstCharLowerCase(method.getReturnType().getSimpleName());
                 }
                 Method initialMethod = null, destroyMethod = null;
-                try {
-                    if (!StringUtils.isEmpty(bean.initMethod()))
-                        initialMethod = clazz.getMethod(bean.initMethod());
-                } catch (NoSuchMethodException e) {
-                    logger.error("No such method: {}", bean.initMethod());
-                    throw new RuntimeException(e);
-                }
-                try {
-                    if (!StringUtils.isEmpty(bean.destroyMethod()))
-                        destroyMethod = clazz.getMethod(bean.destroyMethod());
-                } catch (NoSuchMethodException e) {
-                    logger.error("No such method: {}", bean.destroyMethod());
-                    throw new RuntimeException(e);
-                }
                 BeanDefinition beanDefinition = BeanDefinition.builder().beanName(beanName)
                         .declaredClass(method.getReturnType()).initMethod(initialMethod).destroyMethod(destroyMethod)
                         .order(ClassUtils.getOrder(method))

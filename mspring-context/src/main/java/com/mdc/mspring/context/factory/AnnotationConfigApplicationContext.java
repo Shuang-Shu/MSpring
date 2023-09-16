@@ -67,9 +67,7 @@ public class AnnotationConfigApplicationContext extends AbstractApplicationConte
             throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         for (var beanName : beanDefinitionRegistry.getBeanDefinitionNames()) {
             var definition = beanDefinitionRegistry.getBeanDefinition(beanName);
-            if (definition.getInitMethod() != null) {
-
-            } else if (!StringUtils.isEmpty(definition.getInitMethodName())) {
+            if (!StringUtils.isEmpty(definition.getInitMethodName())) {
                 Method initMethod = definition.getDeclaredClass().getMethod(definition.getInitMethodName());
                 initMethod.invoke(definition.getOriginInstance());
             }
