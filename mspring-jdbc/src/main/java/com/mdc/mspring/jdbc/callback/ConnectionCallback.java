@@ -1,6 +1,6 @@
 package com.mdc.mspring.jdbc.callback;
 
-import com.mdc.mspring.context.anno.Nullable;
+import com.mdc.mspring.context.annotation.Nullable;
 
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -1,6 +1,6 @@
 package com.mdc.mspring.demo.app;
 
-import com.mdc.mspring.context.factory.impl.AnnotationConfigApplicationContext;
+import com.mdc.mspring.context.factory.AnnotationConfigApplicationContext;
 import com.mdc.mspring.demo.app.config.TestConfig;
 
 import java.io.IOException;

@@ -1,9 +1,9 @@
 package com.mdc.mspring.mvc.entity;
 
 import com.mdc.mspring.context.utils.ClassUtils;
-import com.mdc.mspring.mvc.anno.PathVariable;
-import com.mdc.mspring.mvc.anno.RequestBody;
-import com.mdc.mspring.mvc.anno.RequestParam;
+import com.mdc.mspring.mvc.annotation.PathVariable;
+import com.mdc.mspring.mvc.annotation.RequestBody;
+import com.mdc.mspring.mvc.annotation.RequestParam;
 import com.mdc.mspring.mvc.enums.ParamType;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;

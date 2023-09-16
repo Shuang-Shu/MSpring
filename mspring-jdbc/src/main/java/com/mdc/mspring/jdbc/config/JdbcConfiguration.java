@@ -1,7 +1,7 @@
 package com.mdc.mspring.jdbc.config;
 
 import com.mdc.mspring.aop.config.AopConfiguration;
-import com.mdc.mspring.context.anno.*;
+import com.mdc.mspring.context.annotation.*;
 import com.mdc.mspring.jdbc.processor.TransactionalBeanPostProcessor;
 import com.mdc.mspring.jdbc.template.JdbcTemplate;
 import com.mdc.mspring.jdbc.tx.PlatformTransactionManager;

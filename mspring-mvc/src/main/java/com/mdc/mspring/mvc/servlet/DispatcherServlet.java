@@ -1,8 +1,8 @@
 package com.mdc.mspring.mvc.servlet;
 
-import com.mdc.mspring.context.entity.ioc.BeanDefinition;
-import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
-import com.mdc.mspring.mvc.anno.*;
+import com.mdc.mspring.context.factory.support.AbstractApplicationContext;
+import com.mdc.mspring.context.factory.support.BeanDefinition;
+import com.mdc.mspring.mvc.annotation.*;
 import com.mdc.mspring.mvc.entity.Dispatcher;
 import com.mdc.mspring.mvc.entity.ModelAndView;
 import com.mdc.mspring.mvc.entity.Param;
@@ -42,15 +42,15 @@ public class DispatcherServlet extends HttpServlet {
     private final static Logger logger = LoggerFactory.getLogger(DispatcherServlet.class);
     final List<Dispatcher> dispatcherList = new ArrayList<>();
 
-    private ConfigurableApplicationContext context;
+    private AbstractApplicationContext context;
     private String resourcePath;
     private ViewResolver viewResolver;
     private String appName = "";
 
-    public DispatcherServlet(ConfigurableApplicationContext context) {
+    public DispatcherServlet(AbstractApplicationContext context) {
         super();
-        this.resourcePath = context.getResourceResolver().getProperty("${mspring.web.static-path:/static/}");
-        this.appName = context.getResourceResolver().getProperty("${server.servlet.context-path:}");
+        this.resourcePath = context.getPropertyRegistry().getProperty("${mspring.web.static-path:/static/}");
+        this.appName = context.getPropertyRegistry().getProperty("${server.servlet.context-path:}");
         this.formatAppName();
         this.viewResolver = context.getBean(ViewResolver.class);
         this.context = context;

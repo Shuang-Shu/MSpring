@@ -1,6 +1,6 @@
 package com.mdc.mspring.mvc.config;
 
-import com.mdc.mspring.context.anno.*;
+import com.mdc.mspring.context.annotation.*;
 import com.mdc.mspring.mvc.view.ViewResolver;
 import com.mdc.mspring.mvc.view.impl.FreeMarkerViewResolver;
 

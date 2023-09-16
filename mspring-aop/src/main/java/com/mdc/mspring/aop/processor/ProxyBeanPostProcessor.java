@@ -2,12 +2,12 @@ package com.mdc.mspring.aop.processor;
 
 import com.mdc.mspring.aop.exception.AopException;
 import com.mdc.mspring.aop.resolver.ProxyResolver;
-import com.mdc.mspring.context.anno.Autowired;
-import com.mdc.mspring.context.anno.Aware;
-import com.mdc.mspring.context.entity.ioc.BeanDefinition;
+import com.mdc.mspring.context.annotation.Autowired;
+import com.mdc.mspring.context.annotation.Aware;
 import com.mdc.mspring.context.entity.ioc.BeanPostProcessor;
-import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
-import com.mdc.mspring.context.factory.Context;
+import com.mdc.mspring.context.factory.support.BeanFactory;
+import com.mdc.mspring.context.factory.support.ListableBeanFactory;
+import com.mdc.mspring.context.factory.support.BeanDefinition;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
@@ -21,7 +21,7 @@ import java.lang.reflect.Type;
  * @Description:
  */
 public class ProxyBeanPostProcessor<A extends Annotation> extends BeanPostProcessor implements Aware {
-    private Context context;
+    private BeanFactory beanFactory;
     @Autowired
     private ProxyResolver resolver;
     private final Class<A> classA;
@@ -33,9 +33,9 @@ public class ProxyBeanPostProcessor<A extends Annotation> extends BeanPostProces
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
         if (resolver == null) {
-            BeanDefinition resolverDefinition = (BeanDefinition) ((ConfigurableApplicationContext) context).findBeanDefinition(ProxyResolver.class);
+            BeanDefinition resolverDefinition = (BeanDefinition) ((ListableBeanFactory) beanFactory).getBeanDefinition(ProxyResolver.class);
             if (resolverDefinition.getInstance() == null) {
-                ((ConfigurableApplicationContext) context).createBeanAsEarlySingleton(resolverDefinition);
+                ((ListableBeanFactory) beanFactory).createBeanAsEarlySingleton(resolverDefinition);
             }
             resolver = (ProxyResolver) resolverDefinition.getInstance();
         }
@@ -48,9 +48,9 @@ public class ProxyBeanPostProcessor<A extends Annotation> extends BeanPostProces
             } catch (ReflectiveOperationException e) {
                 throw new AopException(String.format("@%s must have value() returned String type.", this.classA.getSimpleName()), e);
             }
-            InvocationHandler invocationHandler = context.getBean(handlerName, InvocationHandler.class);
+            InvocationHandler invocationHandler = beanFactory.getBean(handlerName, InvocationHandler.class);
             if (invocationHandler == null) {
-                invocationHandler = (InvocationHandler) ((ConfigurableApplicationContext) context).createBeanAsEarlySingleton(((ConfigurableApplicationContext) context).findBeanDefinition(handlerName));
+                invocationHandler = (InvocationHandler) ((ListableBeanFactory) beanFactory).createBeanAsEarlySingleton(((ListableBeanFactory) beanFactory).getBeanDefinition(handlerName));
             }
             proxy = resolver.createProxy(bean, invocationHandler);
         }
@@ -58,8 +58,8 @@ public class ProxyBeanPostProcessor<A extends Annotation> extends BeanPostProces
     }
 
     @Override
-    public void setContext(Context context) {
-        this.context = context;
+    public void setContext(BeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
     }
 
     @SuppressWarnings("unchecked")

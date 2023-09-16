@@ -1,8 +1,8 @@
 package com.mdc.mspring.demo.app.config;
 
-import com.mdc.mspring.context.anno.Bean;
-import com.mdc.mspring.context.anno.ComponentScan;
-import com.mdc.mspring.context.anno.Configuration;
+import com.mdc.mspring.context.annotation.Bean;
+import com.mdc.mspring.context.annotation.ComponentScan;
+import com.mdc.mspring.context.annotation.Configuration;
 import com.mdc.mspring.demo.app.entity.Student;
 import com.mdc.mspring.demo.app.entity.Teacher;
 

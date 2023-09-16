@@ -1,8 +1,8 @@
 package com.mdc.mspring.context.resolver;
 
-import com.mdc.mspring.context.anno.ComponentScan;
-import com.mdc.mspring.context.anno.Configuration;
-import com.mdc.mspring.context.anno.Import;
+import com.mdc.mspring.context.annotation.ComponentScan;
+import com.mdc.mspring.context.annotation.Configuration;
+import com.mdc.mspring.context.annotation.Import;
 import com.mdc.mspring.context.entity.Resource;
 import com.mdc.mspring.context.utils.StringUtils;
 import com.mdc.mspring.context.utils.YamlUtils;
@@ -53,12 +53,6 @@ public class ResourceResolver {
 
     public ResourceResolver() throws IOException, URISyntaxException, ClassNotFoundException {
         initPropertyMap();
-    }
-
-    public void setProperties(Properties properties) {
-        for (String name : properties.stringPropertyNames()) {
-            properties.put(name, properties.getProperty(name));
-        }
     }
 
     private void initPropertyMap() throws IOException, URISyntaxException, ClassNotFoundException {
@@ -150,7 +144,7 @@ public class ResourceResolver {
         while (resources.hasMoreElements()) {
             URL resource = resources.nextElement();
             URI uri = resource.toURI();
-
+            logger.info("Scanning resource: {}", uri.toString());
             if (uri.toString().startsWith("file:")) {
                 resourceCollector.addAll(getResourcesFromFile(new File(uri), suffixSet, basePackage));
             } else if (uri.toString().startsWith("jar:")) {

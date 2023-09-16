@@ -5,16 +5,26 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class YamlUtils {
+    public static Map<String, Object> parseYaml(InputStream is) {
+        if (is == null) {
+            return new HashMap<>();
+        }
+        return new Yaml().load(is);
+    }
+
     public static Map<String, Object> parseYaml(File f) throws FileNotFoundException {
-        Yaml yaml = new Yaml();
-        return yaml.load(new FileInputStream(f));
+        return parseYaml(new FileInputStream(f));
     }
 
     public static Map<String, String> flattenYaml(Map<String, Object> yamlMap) {
+        if (yamlMap == null) {
+            return Map.of();
+        }
         Map<String, String> result = new HashMap<>();
         for (String key : yamlMap.keySet()) {
             Object value = yamlMap.get(key);

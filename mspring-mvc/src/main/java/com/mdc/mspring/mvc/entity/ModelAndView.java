@@ -1,6 +1,5 @@
 package com.mdc.mspring.mvc.entity;
 
-import com.mdc.mspring.context.anno.Nullable;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 

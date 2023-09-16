@@ -1,7 +1,8 @@
 package com.mdc.mspring.mvc.listener;
 
-import com.mdc.mspring.context.factory.ConfigurableApplicationContext;
-import com.mdc.mspring.context.factory.impl.AnnotationConfigApplicationContext;
+import com.mdc.mspring.context.factory.support.AbstractApplicationContext;
+import com.mdc.mspring.context.factory.support.ListableBeanFactory;
+import com.mdc.mspring.context.factory.AnnotationConfigApplicationContext;
 import com.mdc.mspring.mvc.config.WebMvcConfiguration;
 import com.mdc.mspring.mvc.servlet.DispatcherServlet;
 import jakarta.servlet.ServletContextEvent;
@@ -27,12 +28,12 @@ public class ContextLoaderListener implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         logger.info("ContextLoaderListener initializing...");
         // 创建IoC容器:
-        ConfigurableApplicationContext applicationContext = null;
+        AbstractApplicationContext applicationContext = null;
         WebMvcConfiguration.setServletContext(sce.getServletContext());
         try {
             applicationContext = createApplicationContext(sce);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException
-                 | ClassNotFoundException | IOException | URISyntaxException e) {
+                | ClassNotFoundException | IOException | URISyntaxException e) {
             logger.error(e.getMessage());
         }
         logger.info("Application context initialized: {}", applicationContext);
@@ -49,7 +50,7 @@ public class ContextLoaderListener implements ServletContextListener {
         servletContext.setAttribute("applicationContext", applicationContext);
     }
 
-    private ConfigurableApplicationContext createApplicationContext(ServletContextEvent sce)
+    private AbstractApplicationContext createApplicationContext(ServletContextEvent sce)
             throws IOException, URISyntaxException, NoSuchMethodException, InvocationTargetException,
             InstantiationException, IllegalAccessException, ClassNotFoundException {
         logger.info("Initializing AnnotationConfigApplicationContext...");

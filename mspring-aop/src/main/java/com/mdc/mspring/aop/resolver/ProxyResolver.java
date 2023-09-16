@@ -1,7 +1,7 @@
 package com.mdc.mspring.aop.resolver;
 
-import com.mdc.mspring.aop.anno.Enhanced;
-import com.mdc.mspring.context.anno.Component;
+import com.mdc.mspring.aop.annotation.Enhanced;
+import com.mdc.mspring.context.annotation.Component;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.InvocationHandlerAdapter;

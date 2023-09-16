@@ -1,6 +1,6 @@
 package com.mdc.mspring.jdbc;
 
-import com.mdc.mspring.context.factory.impl.AnnotationConfigApplicationContext;
+import com.mdc.mspring.context.factory.AnnotationConfigApplicationContext;
 import com.mdc.mspring.jdbc.config.JdbcConfiguration;
 
 import javax.sql.DataSource;
