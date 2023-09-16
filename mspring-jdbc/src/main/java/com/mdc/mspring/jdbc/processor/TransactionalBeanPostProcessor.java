@@ -1,7 +1,7 @@
 package com.mdc.mspring.jdbc.processor;
 
 import com.mdc.mspring.aop.processor.ProxyBeanPostProcessor;
-import com.mdc.mspring.jdbc.anno.Transactional;
+import com.mdc.mspring.jdbc.annotation.Transactional;
 
 /**
  * @Author: ShuangShu

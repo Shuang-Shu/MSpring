@@ -1,6 +1,6 @@
 package com.mdc.mspring.demo.app.entity;
 
-import com.mdc.mspring.context.anno.Autowired;
+import com.mdc.mspring.context.annotation.Autowired;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

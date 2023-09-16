@@ -1,0 +1,8 @@
+bean1:
+  test: "bean1.test"
+bean2:
+  test: "bean2.test"
+bean3:
+  test: "bean3.test"
+bean4:
+  test: "bean4.test"

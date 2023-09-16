@@ -1,9 +1,9 @@
 package com.mdc.mspring.boot.controller;
 
-import com.mdc.mspring.mvc.anno.Controller;
-import com.mdc.mspring.mvc.anno.GetMapping;
-import com.mdc.mspring.mvc.anno.PathVariable;
-import com.mdc.mspring.mvc.anno.ResponseBody;
+import com.mdc.mspring.mvc.annotation.Controller;
+import com.mdc.mspring.mvc.annotation.GetMapping;
+import com.mdc.mspring.mvc.annotation.PathVariable;
+import com.mdc.mspring.mvc.annotation.ResponseBody;
 
 @Controller
 public class BasicController {

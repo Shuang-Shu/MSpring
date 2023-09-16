@@ -1,8 +1,8 @@
 package com.mdc.mspring.context.utils;
 
-import com.mdc.mspring.context.anno.ComponentScan;
-import com.mdc.mspring.context.anno.Order;
-import com.mdc.mspring.context.anno.Primary;
+import com.mdc.mspring.context.annotation.ComponentScan;
+import com.mdc.mspring.context.annotation.Order;
+import com.mdc.mspring.context.annotation.Primary;
 import com.mdc.mspring.context.exception.BeanDefinitionException;
 
 import java.lang.annotation.Annotation;
@@ -11,6 +11,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -20,6 +21,11 @@ import java.util.Set;
  * @Description:
  */
 public class ClassUtils {
+    @SuppressWarnings("unchecked")
+    public static <T extends Annotation> T getAnnotation(Class<?> clazz, Class<? extends T> annoClass) {
+        return (T) getAnnotation(clazz, annoClass, new HashSet<>());
+    }
+
     /**
      * Recursively finds if the class(clazz) has been specified for target
      * annotation(annoClass)
@@ -29,8 +35,8 @@ public class ClassUtils {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public static Annotation getAnnotation(Class<?> clazz, Class<? extends Annotation> annoClass,
-                                           Set<Class<Annotation>> annotationSet) {
+    private static Annotation getAnnotation(Class<?> clazz, Class<? extends Annotation> annoClass,
+                                            Set<Class<Annotation>> annotationSet) {
         if (annotationSet.contains(clazz)) {
             return null;
         } else {

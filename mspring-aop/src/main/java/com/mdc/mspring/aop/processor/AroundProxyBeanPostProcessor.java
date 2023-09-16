@@ -1,7 +1,7 @@
 package com.mdc.mspring.aop.processor;
 
-import com.mdc.mspring.aop.anno.Around;
-import com.mdc.mspring.context.anno.Component;
+import com.mdc.mspring.aop.annotation.Around;
+import com.mdc.mspring.context.annotation.Component;
 
 /**
  * @Author: ShuangShu
