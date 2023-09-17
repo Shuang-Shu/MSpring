@@ -2,11 +2,7 @@ package com.mdc.mspring.webapp.controller;
 
 import java.util.Map;
 
-import com.mdc.mspring.mvc.anno.Controller;
-import com.mdc.mspring.mvc.anno.GetMapping;
-import com.mdc.mspring.mvc.anno.PathVariable;
-import com.mdc.mspring.mvc.anno.RequestParam;
-import com.mdc.mspring.mvc.anno.ResponseBody;
+import com.mdc.mspring.mvc.annotation.*;
 import com.mdc.mspring.mvc.entity.ModelAndView;
 
 @Controller

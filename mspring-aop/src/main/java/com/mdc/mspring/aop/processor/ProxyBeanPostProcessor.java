@@ -2,12 +2,10 @@ package com.mdc.mspring.aop.processor;
 
 import com.mdc.mspring.aop.exception.AopException;
 import com.mdc.mspring.aop.resolver.ProxyResolver;
-import com.mdc.mspring.context.annotation.Autowired;
 import com.mdc.mspring.context.annotation.Aware;
 import com.mdc.mspring.context.entity.ioc.BeanPostProcessor;
 import com.mdc.mspring.context.factory.support.BeanFactory;
 import com.mdc.mspring.context.factory.support.ListableBeanFactory;
-import com.mdc.mspring.context.factory.support.BeanDefinition;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
@@ -22,9 +20,8 @@ import java.lang.reflect.Type;
  */
 public class ProxyBeanPostProcessor<A extends Annotation> extends BeanPostProcessor implements Aware {
     private BeanFactory beanFactory;
-    @Autowired
-    private ProxyResolver resolver;
     private final Class<A> classA;
+    private final static ProxyResolver resolver = new ProxyResolver();
 
     public ProxyBeanPostProcessor() {
         classA = getParameterizedType();
@@ -32,13 +29,6 @@ public class ProxyBeanPostProcessor<A extends Annotation> extends BeanPostProces
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
-        if (resolver == null) {
-            BeanDefinition resolverDefinition = (BeanDefinition) ((ListableBeanFactory) beanFactory).getBeanDefinition(ProxyResolver.class);
-            if (resolverDefinition.getInstance() == null) {
-                ((ListableBeanFactory) beanFactory).createBeanAsEarlySingleton(resolverDefinition);
-            }
-            resolver = (ProxyResolver) resolverDefinition.getInstance();
-        }
         Annotation annotation = bean.getClass().getAnnotation(classA);
         Object proxy = bean;
         String handlerName;

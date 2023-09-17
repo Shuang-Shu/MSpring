@@ -1,13 +1,13 @@
 package com.mdc.mspring.mvc.listener;
 
 import com.mdc.mspring.context.factory.support.AbstractApplicationContext;
-import com.mdc.mspring.context.factory.support.ListableBeanFactory;
 import com.mdc.mspring.context.factory.AnnotationConfigApplicationContext;
 import com.mdc.mspring.mvc.config.WebMvcConfiguration;
 import com.mdc.mspring.mvc.servlet.DispatcherServlet;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
  * @Date: 2023/08/21/18:41
  * @Description:
  */
+@WebListener
 public class ContextLoaderListener implements ServletContextListener {
     private static final Logger logger = LoggerFactory.getLogger(ContextLoaderListener.class);
 
@@ -33,7 +34,7 @@ public class ContextLoaderListener implements ServletContextListener {
         try {
             applicationContext = createApplicationContext(sce);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException
-                | ClassNotFoundException | IOException | URISyntaxException e) {
+                 | ClassNotFoundException | IOException | URISyntaxException e) {
             logger.error(e.getMessage());
         }
         logger.info("Application context initialized: {}", applicationContext);
@@ -44,7 +45,6 @@ public class ContextLoaderListener implements ServletContextListener {
         // 注册DispatcherServlet:
         var dispatcherReg = servletContext.addServlet("dispatcherServlet", dispatcherServlet);
         logger.info("DispatcherServlet: {} registered with name: {}", dispatcherServlet, "dispatcherServlet");
-        dispatcherReg.addMapping("/");
         dispatcherReg.setLoadOnStartup(0);
         // 将IoC容器注入到tomcat容器中
         servletContext.setAttribute("applicationContext", applicationContext);
@@ -58,7 +58,7 @@ public class ContextLoaderListener implements ServletContextListener {
         String configClassName = sce.getServletContext().getInitParameter("configuration");
         Class<?> configClass = null;
         try {
-            configClass = Class.forName(configClassName);
+            configClass = Class.forName(configClassName, false, Thread.currentThread().getContextClassLoader());
         } catch (ClassNotFoundException e) {
             try {
                 throw new ServletException("Could not load class from init param 'configuration': " + configClassName);

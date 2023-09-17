@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="30b59cbb-9024-4dae-9e09-8bb11b195a91" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../mspring-aop/src/main/resources/log4j2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../mspring-boot/src/main/java/com/mdc/mspring/boot/config/BootConfiguration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-aop/src/main/java/com/mdc/mspring/aop/processor/ProxyBeanPostProcessor.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-aop/src/main/java/com/mdc/mspring/aop/processor/ProxyBeanPostProcessor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-aop/src/main/java/com/mdc/mspring/aop/resolver/ProxyResolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-aop/src/main/java/com/mdc/mspring/aop/resolver/ProxyResolver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-app/boot-webapp/src/main/java/com/mdc/mspring/boot/webapp/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-app/boot-webapp/src/main/java/com/mdc/mspring/boot/webapp/App.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-app/boot-webapp/src/main/java/com/mdc/mspring/boot/webapp/config/AppConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-app/boot-webapp/src/main/java/com/mdc/mspring/boot/webapp/config/AppConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-app/boot-webapp/src/main/java/com/mdc/mspring/boot/webapp/controller/TestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-app/boot-webapp/src/main/java/com/mdc/mspring/boot/webapp/controller/TestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-app/mspring-webapp/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-app/mspring-webapp/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-app/mspring-webapp/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-app/mspring-webapp/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-app/mspring-webapp/src/main/java/com/mdc/mspring/webapp/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-app/mspring-webapp/src/main/java/com/mdc/mspring/webapp/App.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-app/mspring-webapp/src/main/java/com/mdc/mspring/webapp/config/WebAppConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-app/mspring-webapp/src/main/java/com/mdc/mspring/webapp/config/WebAppConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-app/mspring-webapp/src/main/java/com/mdc/mspring/webapp/controller/BasicController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-app/mspring-webapp/src/main/java/com/mdc/mspring/webapp/controller/BasicController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-app/mspring-webapp/src/main/java/com/mdc/mspring/webapp/listener/TestContextLoaderListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-app/mspring-webapp/src/main/java/com/mdc/mspring/webapp/listener/TestContextLoaderListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-boot/src/main/java/com/mdc/mspring/boot/app/MSpringApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-boot/src/main/java/com/mdc/mspring/boot/app/MSpringApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-boot/src/test/java/com/mdc/mspring/boot/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-boot/src/test/java/com/mdc/mspring/boot/App.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-context/src/main/java/com/mdc/mspring/context/factory/AnnotationConfigApplicationContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-context/src/main/java/com/mdc/mspring/context/factory/AnnotationConfigApplicationContext.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-context/src/main/java/com/mdc/mspring/context/resolver/ClassPathResourceResolver.java" beforeDir="false" afterPath="$PROJECT_DIR$/../mspring-context/src/main/java/com/mdc/mspring/context/resolver/ClassPathResourceResolver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../mspring-context/src/main/java/com/mdc/mspring/context/resolver/ResourceResolver.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/mdc/mspring/mvc/listener/ContextLoaderListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/mdc/mspring/mvc/listener/ContextLoaderListener.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 2
+}]]></component>
+  <component name="ProjectId" id="2VVgx5h2t7NQbqZKDS4GzRCu3iv" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "shuangshu/23/09B",
+    "last_opened_file_path": "//wsl$/Ubuntu/home/shuangshu/study/code/project/mspring"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="30b59cbb-9024-4dae-9e09-8bb11b195a91" name="Changes" comment="" />
+      <created>1694926905925</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1694926905925</updated>
+    </task>
+    <servers />
+  </component>
+</project>

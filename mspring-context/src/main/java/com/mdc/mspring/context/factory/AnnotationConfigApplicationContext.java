@@ -6,11 +6,13 @@ import com.mdc.mspring.context.annotation.ComponentScan;
 import com.mdc.mspring.context.annotation.Value;
 import com.mdc.mspring.context.entity.ioc.BeanPostProcessor;
 import com.mdc.mspring.context.exception.BeanCreateException;
-import com.mdc.mspring.context.factory.support.*;
+import com.mdc.mspring.context.factory.support.AbstractApplicationContext;
+import com.mdc.mspring.context.factory.support.BeanDefinition;
+import com.mdc.mspring.context.factory.support.BeanDefinitionRegistry;
+import com.mdc.mspring.context.factory.support.PropertyRegistry;
 import com.mdc.mspring.context.factory.support.impl.DefaultBeanDefinitionRegistry;
 import com.mdc.mspring.context.factory.support.impl.DefaultPropertyRegistry;
 import com.mdc.mspring.context.resolver.ClassPathResourceResolver;
-import com.mdc.mspring.context.resolver.ResourceResolver;
 import com.mdc.mspring.context.utils.ClassUtils;
 import com.mdc.mspring.context.utils.StringUtils;
 import org.slf4j.Logger;
@@ -43,7 +45,6 @@ public class AnnotationConfigApplicationContext extends AbstractApplicationConte
     // save beanDefinition objects
     private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
     private final Set<BeanDefinition> waiterDefinitions = new HashSet<>();
-//    private final ResourceResolver resourceResolver;
 
     public AnnotationConfigApplicationContext(Class<?> configClass)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException,
@@ -181,7 +182,7 @@ public class AnnotationConfigApplicationContext extends AbstractApplicationConte
             // use factory method to instantiate
             Result result = getAllArgsOfMethod(factoryMethod, waiterDefinitions);
             // instantiate factory bean
-            Object factory = getOrConstruct(Class.forName(definition.getFactoryName()));
+            Object factory = getOrConstruct(Class.forName(definition.getFactoryName(), false, Thread.currentThread().getContextClassLoader()));
             result.factoryMethod().setAccessible(true);
             definition.setInstance(result.factoryMethod().invoke(factory, result.args()));
         } else if (definition.getConstructor() != null) {
@@ -221,7 +222,7 @@ public class AnnotationConfigApplicationContext extends AbstractApplicationConte
                 else
                     args[i] = getOrConstruct(((Autowired) annotations[i]).value());
             } else if (annotations[i] instanceof Value) {
-                args[i] = ResourceResolver.parseTo(argTypes[i],
+                args[i] = ClassPathResourceResolver.parseTo(argTypes[i],
                         propertyRegistry.getProperty(((Value) annotations[i]).value()));
             }
         }
@@ -304,6 +305,7 @@ public class AnnotationConfigApplicationContext extends AbstractApplicationConte
     private void invokeDestroyMethod(BeanDefinition definition)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         if (definition.getDestroyMethod() != null) {
+            logger.info("invoke destroy method: {} of {}", definition.getDestroyMethodName(), definition.getBeanName());
             definition.getDestroyMethod().invoke(definition.getOriginInstance());
         } else if (!StringUtils.isEmpty(definition.getDestroyMethodName())) {
             Method destroyMethod = definition.getDeclaredClass().getMethod(definition.getDestroyMethodName());

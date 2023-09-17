@@ -1,7 +1,9 @@
 package com.mdc.mspring.boot.app;
 
+import com.mdc.mspring.boot.config.BootConfiguration;
 import com.mdc.mspring.boot.initializer.ContextLoaderInitializer;
-import com.mdc.mspring.context.resolver.ResourceResolver;
+import com.mdc.mspring.context.factory.AnnotationConfigApplicationContext;
+import com.mdc.mspring.context.factory.support.PropertyRegistry;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.Server;
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Set;
@@ -21,14 +24,14 @@ import java.util.Set;
 public class MSpringApplication {
     private final static Logger logger = LoggerFactory.getLogger(MSpringApplication.class);
 
-    public static void run(String webDir, String baseDir, Class<?> configClass, String... args) throws IOException, URISyntaxException, ClassNotFoundException {
-        var resourceResolver = new ResourceResolver();
-        var server = startTomcat(webDir, baseDir, configClass, resourceResolver);
+    public static void run(String webDir, String baseDir, Class<?> configClass, String... args) throws IOException, URISyntaxException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        var applicationContext = new AnnotationConfigApplicationContext(BootConfiguration.class);
+        var server = startTomcat(webDir, baseDir, configClass, applicationContext);
         server.await();
     }
 
-    private static Server startTomcat(String webDir, String baseDir, Class<?> configClass, ResourceResolver resourceResolver) {
-        int port = Integer.parseInt(resourceResolver.getProperty("${server.port:8080}"));
+    private static Server startTomcat(String webDir, String baseDir, Class<?> configClass, PropertyRegistry propertyRegistry) {
+        int port = Integer.parseInt(propertyRegistry.getProperty("${server.port:8080}"));
         Tomcat tomcat = new Tomcat();
         tomcat.setPort(port);
         // 设置Connector

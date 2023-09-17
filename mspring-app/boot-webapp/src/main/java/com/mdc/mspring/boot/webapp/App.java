@@ -2,6 +2,7 @@ package com.mdc.mspring.boot.webapp;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,7 +39,7 @@ public class App {
     }
 
     public static void main(String[] args)
-            throws ClassNotFoundException, IOException, URISyntaxException {
+            throws ClassNotFoundException, IOException, URISyntaxException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         printAll();
         System.out.println("\n===\n\n");
         String jarFile = App.class.getResource("App.class").toURI().toString();

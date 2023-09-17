@@ -5,9 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 
-import com.mdc.mspring.context.anno.Import;
-import com.mdc.mspring.context.factory.impl.AnnotationConfigApplicationContext;
-import com.mdc.mspring.mvc.servlet.DispatcherServlet;
+import com.mdc.mspring.context.annotation.Import;
 import com.mdc.mspring.webapp.config.WebAppConfig;
 
 public class App {

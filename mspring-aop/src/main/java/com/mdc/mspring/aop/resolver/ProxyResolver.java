@@ -1,7 +1,6 @@
 package com.mdc.mspring.aop.resolver;
 
 import com.mdc.mspring.aop.annotation.Enhanced;
-import com.mdc.mspring.context.annotation.Component;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.InvocationHandlerAdapter;
@@ -16,7 +15,6 @@ import java.lang.reflect.Method;
  * @Date: 2023/08/14/9:44
  * @Description:
  */
-@Component
 public class ProxyResolver {
     ByteBuddy byteBuddy = new ByteBuddy();
 

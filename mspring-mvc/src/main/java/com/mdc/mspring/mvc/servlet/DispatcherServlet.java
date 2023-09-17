@@ -13,6 +13,7 @@ import com.mdc.mspring.mvc.utils.StringUtils;
 import com.mdc.mspring.mvc.view.ViewResolver;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,7 +26,6 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
  * @Date: 2023/08/21/18:43
  * @Description:
  */
+@WebServlet(name = "dispatcherServlet", value = "/")
 public class DispatcherServlet extends HttpServlet {
     private final static Logger logger = LoggerFactory.getLogger(DispatcherServlet.class);
     final List<Dispatcher> dispatcherList = new ArrayList<>();
@@ -195,6 +196,7 @@ public class DispatcherServlet extends HttpServlet {
                 try {
                     params = parseParams(dispatcher.getMethodParameters(), dispatcher, req, resp);
                 } catch (ServletParamParseException e) {
+                    logger.error(e.getMessage());
                     resp.sendError(400, e.getMessage());
                     return;
                 }
@@ -348,8 +350,13 @@ public class DispatcherServlet extends HttpServlet {
 
     private Map<String, Object> parseBody(HttpServletRequest req) throws IOException {
         Map<String, Object> result = new HashMap<>();
-        byte[] bodyData = req.getInputStream().readAllBytes();
-        String bodyStr = new String(bodyData, Charset.forName("UTF-8"));
+        StringBuilder sb = new StringBuilder();
+        var reader = req.getReader();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+        }
+        String bodyStr = sb.toString();
         result.putAll(JsonUtils.parseMap(bodyStr));
         return result;
     }

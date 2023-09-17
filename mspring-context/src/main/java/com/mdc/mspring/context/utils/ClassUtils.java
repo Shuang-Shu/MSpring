@@ -132,7 +132,7 @@ public class ClassUtils {
 
     public static boolean isAnnotation(String className) {
         try {
-            Class<?> clazz = Class.forName(className);
+            Class<?> clazz = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
             return clazz.isAnnotation();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();

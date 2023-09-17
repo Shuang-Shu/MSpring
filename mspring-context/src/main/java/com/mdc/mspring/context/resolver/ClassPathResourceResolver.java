@@ -26,6 +26,7 @@ import java.util.function.Function;
  * @description: TODO
  * @date 2023/9/15 14:02
  */
+// TODO：可对ResourceResolver进行抽象化
 public class ClassPathResourceResolver {
     private final Logger logger = LoggerFactory.getLogger(ClassPathResourceResolver.class);
     private final BeanDefinitionRegistry registry;
@@ -68,6 +69,7 @@ public class ClassPathResourceResolver {
         if (ClassUtils.getAnnotation(configClass, Configuration.class) == null) {
             return;
         }
+        logger.info("Scanning on class: {}", configClass.getName());
         String scanPackage = configClass.getPackageName();
         ComponentScan componentScan = null;
         if ((componentScan = ClassUtils.getAnnotation(configClass, ComponentScan.class)) != null) {
@@ -91,6 +93,7 @@ public class ClassPathResourceResolver {
         } else {
             scannedPackages.add(scanPackage);
         }
+        logger.info("Scanning on package: {}", scanPackage);
         scanPackage = scanPackage.replace(".", "/");
         final String scanPackagePath = scanPackage;
         List<Resource> scannedResources = new ArrayList<>(ResourceUtils.getAllResources(scanPackagePath));
@@ -103,7 +106,7 @@ public class ClassPathResourceResolver {
                             String className = UrlUtils.convertToClassName(r.getName(), scanPackagePath);
                             Class<?> clazz = null;
                             try {
-                                clazz = Class.forName(className);
+                                clazz = Class.forName(className, false, Thread.currentThread().getContextClassLoader());
                             } catch (ClassNotFoundException e) {
                                 throw new RuntimeException(e);
                             }
@@ -178,6 +181,7 @@ public class ClassPathResourceResolver {
     }
 
     private void parseConfig(String location) throws IOException, URISyntaxException {
+        logger.debug("Parsing config file: {}", location);
         Resource resource = ResourceUtils.getResource(location);
         if (resource == null) {
             return;
@@ -193,6 +197,7 @@ public class ClassPathResourceResolver {
     }
 
     private BeanDefinition buildBeanDefinition(Class<?> clazz) throws NoSuchMethodException {
+        logger.debug("Building bean definition for class: {}", clazz.getName());
         Component component = ClassUtils.getAnnotation(clazz, Component.class);
         if (component != null) {
             String beanName = null;
